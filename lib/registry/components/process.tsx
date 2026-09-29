@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { ComponentDefinition } from "../types";
+import { ET } from "../editable";
 import { Container, Lead, SectionHeader, StepNumber } from "./ui";
 
 const processProps = z.object({
@@ -25,11 +26,11 @@ export const process: ComponentDefinition = {
       defaultProps: {},
     },
   },
-  render(rawProps) {
+  render(rawProps, ctx) {
     const p = rawProps as z.infer<typeof processProps>;
     return (
       <Container>
-        <SectionHeader eyebrow={p.eyebrow} title={p.title} intro={p.intro} />
+        <SectionHeader ctx={ctx} eyebrow={p.eyebrow} title={p.title} intro={p.intro} />
         <div className="orbita-grid-auto" style={{ ["--columns" as string]: Math.min(p.items.length, 4) }}>
           {p.items.map((step, i) => (
             <div key={i} style={{ borderTop: "1px solid var(--color-border)", paddingBlock: "1.5rem" }}>
@@ -43,11 +44,11 @@ export const process: ComponentDefinition = {
                   margin: "0.875rem 0 0",
                 }}
               >
-                {step.title}
+                {ET(ctx, `items.${i}.title`, step.title)}
               </h3>
               {step.description && (
                 <Lead style={{ fontSize: "calc(var(--text-body) * 0.92)", marginTop: "0.625rem" }}>
-                  {step.description}
+                  {ET(ctx, `items.${i}.description`, step.description)}
                 </Lead>
               )}
             </div>

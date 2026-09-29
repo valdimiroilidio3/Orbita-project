@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { AssetRef } from "@/lib/site-schema";
 import type { ComponentDefinition } from "../types";
+import { ET } from "../editable";
 import { Container, Heading, ImageFrame, Lead, LinkButton } from "./ui";
 
 const ctaProps = z.object({
@@ -44,10 +45,10 @@ export const cta: ComponentDefinition = {
             style={{ borderTop: "1px solid var(--color-border)", paddingBlock: "calc(var(--section-y) * 0.55)" }}
           >
             <Heading level={3} style={{ fontSize: "calc(var(--text-h3) * 1.15)" }}>
-              {p.title}
+              {ET(ctx, "title", p.title)}
             </Heading>
             <LinkButton href={ctx.linkFor(p.primaryCta.pagePath)} variant="ghost">
-              {p.primaryCta.label}
+              {ET(ctx, "primaryCta.label", p.primaryCta.label)}
             </LinkButton>
           </div>
         </Container>
@@ -78,7 +79,7 @@ export const cta: ComponentDefinition = {
                   color: overImage ? "var(--color-foreground)" : "var(--color-primary-contrast)",
                 }}
               >
-                {p.title}
+                {ET(ctx, "title", p.title)}
               </Heading>
               {p.description && (
                 <Lead
@@ -89,7 +90,7 @@ export const cta: ComponentDefinition = {
                       : "color-mix(in srgb, var(--color-primary-contrast) 82%, transparent)",
                   }}
                 >
-                  {p.description}
+                  {ET(ctx, "description", p.description)}
                 </Lead>
               )}
             </div>
@@ -97,7 +98,7 @@ export const cta: ComponentDefinition = {
               href={ctx.linkFor(p.primaryCta.pagePath)}
               variant={overImage ? "primary" : "invert"}
             >
-              {p.primaryCta.label}
+              {ET(ctx, "primaryCta.label", p.primaryCta.label)}
             </LinkButton>
           </Container>
         </div>

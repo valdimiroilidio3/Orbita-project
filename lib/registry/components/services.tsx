@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { ComponentDefinition } from "../types";
+import { ET } from "../editable";
 import { Card, Container, Lead, SectionHeader, StepNumber } from "./ui";
 
 const servicesProps = z.object({
@@ -37,7 +38,7 @@ export const services: ComponentDefinition = {
     if (ctx.variant === "list") {
       return (
         <Container>
-          <SectionHeader eyebrow={p.eyebrow} title={p.title} intro={p.intro} />
+          <SectionHeader ctx={ctx} eyebrow={p.eyebrow} title={p.title} intro={p.intro} />
           <div style={{ borderTop: "1px solid var(--color-border)" }}>
             {p.items.map((item, i) => (
               <div key={i} className="orbita-services-row">
@@ -51,9 +52,9 @@ export const services: ComponentDefinition = {
                     margin: 0,
                   }}
                 >
-                  {item.title}
+                  {ET(ctx, `items.${i}.title`, item.title)}
                 </h3>
-                <Lead style={{ fontSize: "calc(var(--text-body) * 0.95)" }}>{item.description}</Lead>
+                <Lead style={{ fontSize: "calc(var(--text-body) * 0.95)" }}>{ET(ctx, `items.${i}.description`, item.description)}</Lead>
               </div>
             ))}
           </div>
@@ -63,7 +64,7 @@ export const services: ComponentDefinition = {
 
     return (
       <Container>
-        <SectionHeader eyebrow={p.eyebrow} title={p.title} intro={p.intro} />
+        <SectionHeader ctx={ctx} eyebrow={p.eyebrow} title={p.title} intro={p.intro} />
         <div className="orbita-grid-auto" style={{ ["--columns" as string]: 3 }}>
           {p.items.map((item, i) => (
             <Card key={i} style={{ padding: "1.75rem" }}>
@@ -77,10 +78,10 @@ export const services: ComponentDefinition = {
                   margin: "0.875rem 0 0",
                 }}
               >
-                {item.title}
+                {ET(ctx, `items.${i}.title`, item.title)}
               </h3>
               <Lead style={{ fontSize: "calc(var(--text-body) * 0.92)", marginTop: "0.625rem" }}>
-                {item.description}
+                {ET(ctx, `items.${i}.description`, item.description)}
               </Lead>
             </Card>
           ))}

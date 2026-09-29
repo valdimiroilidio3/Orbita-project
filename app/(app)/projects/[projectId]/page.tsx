@@ -21,13 +21,9 @@ import { requireProject } from "@/lib/server/authz";
 import { listAssets, listVersions, updateProject } from "@/lib/db";
 import { diffSchemas } from "@/lib/engine/mutations";
 import { resolveSite } from "@/lib/engine/page-engine";
-import { describeVariantSchema } from "@/lib/editor/fields";
 import { runQualityChecks } from "@/lib/quality/report";
-import { getComponent } from "@/lib/registry";
 import { migrateSiteSchema } from "@/lib/site-schema/migrations";
-import { componentLabel } from "@/lib/site-schema/catalog";
-import type { SiteSchemaType } from "@/lib/site-schema";
-import HubEditor, { type HubPage } from "../../components/hub-editor";
+import ProjectEditor from "../../components/project-editor";
 import { StatusChip, relativeTime } from "../../components/status-chip";
 
 export const metadata: Metadata = { title: "Project" };
@@ -41,28 +37,6 @@ export default async function ProjectPage({ params }: { params: Promise<{ projec
   const assetIds = new Set(assets.map((a) => a.id));
   const resolved = project.schemaJson ? resolveSite(project.schemaJson, { assetIds }) : null;
   const quality = resolved?.ok ? runQualityChecks(resolved.site.schema, assetIds) : null;
-
-  const hubPages: HubPage[] = resolved?.ok
-    ? resolved.site.pages.map((rp) => ({
-        id: rp.page.id,
-        path: rp.page.path,
-        title: rp.page.title,
-        sections: rp.sections.map((rs) => {
-          const def = getComponent(rs.type);
-          const vdef = def?.variants[rs.variant];
-          return {
-            id: rs.id,
-            type: rs.type,
-            typeLabel: componentLabel(rs.type),
-            variant: rs.variant,
-            variantLabel: vdef?.label ?? rs.variant,
-            hidden: rs.hidden,
-            props: rs.props,
-            fields: vdef ? describeVariantSchema(vdef.schema) : [],
-          };
-        }),
-      }))
-    : [];
 
   const versionRows = versions.map((v, i) => {
     let diff: ReturnType<typeof diffSchemas> | null = null;
@@ -136,10 +110,10 @@ export default async function ProjectPage({ params }: { params: Promise<{ projec
 
       {resolved?.ok && (
         <>
-          <HubEditor
+          <ProjectEditor
             projectId={project.id}
             previewSrc={`/preview/${project.previewToken}/site`}
-            pages={hubPages}
+            initialSchema={resolved.site.schema}
             assets={assets.map((a) => ({
               id: a.id,
               filename: a.filename,

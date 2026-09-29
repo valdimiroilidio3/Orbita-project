@@ -52,3 +52,125 @@ body {
 *::-webkit-scrollbar-track {
   background: transparent;
 }
+
+/* -------------------------------------------------------------------------
+ * Visual editor chrome (product UI only — never emitted to deployed sites).
+ * Scoped to the canvas: .oe-viewport > .oe-scope (container-query context).
+ * ------------------------------------------------------------------------- */
+.oe-viewport {
+  background: #050603;
+}
+.oe-scope {
+  position: relative;
+}
+.oe-sec {
+  position: relative;
+  cursor: pointer;
+}
+.oe-sec:hover {
+  outline: 1px solid color-mix(in srgb, var(--color-accent) 55%, transparent);
+  outline-offset: -1px;
+}
+.oe-sec-selected,
+.oe-sec-selected:hover {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -2px;
+}
+.oe-sec:hover::after,
+.oe-sec-selected::after {
+  content: attr(data-oe-label);
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 45;
+  font-family: "Space Grotesk Variable", "Space Grotesk", sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #080906;
+  background: var(--color-accent);
+  padding: 3px 8px;
+  border-radius: 999px;
+  pointer-events: none;
+  box-shadow: 0 2px 12px rgb(0 0 0 / 0.35);
+}
+.oe-drag-handle {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 46;
+  width: 22px;
+  height: 22px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-surface) 85%, transparent);
+  color: var(--color-foreground);
+  font-size: 11px;
+  line-height: 1;
+  cursor: grab;
+  touch-action: none;
+}
+.oe-sec:hover .oe-drag-handle,
+.oe-sec-selected .oe-drag-handle {
+  display: flex;
+}
+.oe-drag-handle:active {
+  cursor: grabbing;
+}
+.oe-dragging {
+  opacity: 0.35;
+}
+.oe-drop-line {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  height: 2px;
+  z-index: 50;
+  pointer-events: none;
+  background: var(--color-accent);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--color-accent) 80%, transparent);
+}
+.oe-slot {
+  border-radius: 3px;
+}
+.oe-sec:hover .oe-slot,
+.oe-sec-selected .oe-slot {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-accent) 30%, transparent);
+}
+/* In edit mode the site's own interactive elements never intercept input;
+ * the drag handle and the editable text slots stay live. */
+.oe-editing .orbita-site a,
+.oe-editing .orbita-site button:not(.oe-drag-handle),
+.oe-editing .orbita-site form,
+.oe-editing .orbita-site summary,
+.oe-editing .orbita-site input,
+.oe-editing .orbita-site select,
+.oe-editing .orbita-site textarea {
+  pointer-events: none;
+}
+.oe-editing .orbita-site [data-oe-prop] {
+  pointer-events: auto;
+  cursor: text;
+}
+.oe-editing .orbita-site .orbita-anim {
+  animation: none !important;
+}
+.oe-inline-editor {
+  position: absolute;
+  z-index: 60;
+  margin: 0;
+  padding: 2px 6px;
+  border: 1.5px solid var(--color-accent);
+  border-radius: 4px;
+  background: var(--color-background);
+  resize: none;
+  overflow: hidden;
+  outline: none;
+  box-shadow: 0 4px 24px rgb(0 0 0 / 0.4);
+  white-space: pre-wrap;
+  word-break: break-word;
+}

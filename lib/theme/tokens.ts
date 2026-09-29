@@ -267,3 +267,27 @@ export function themeToCss(theme: ThemeType): string {
   ];
   return lines.filter(Boolean).join("\n");
 }
+
+/**
+ * Scope generated site CSS into a subtree (visual editor canvas).
+ *
+ * `:root` selectors become the scope class; viewport `@media` width queries
+ * become `@container` queries on the canvas container (inline-size), so the
+ * M/T/D breakpoints track the canvas width instead of the browser window.
+ * `vw` units become `cqw` (container width units). `prefers-reduced-motion`
+ * queries are left untouched.
+ *
+ * The deployment pipeline never uses this function — it keeps emitting
+ * standard viewport CSS for the exported site.
+ */
+export function scopeThemeCss(css: string, scope = ".oe-scope", containerName = "oe"): string {
+  return css
+    .replaceAll(":root{", `${scope}{`)
+    .replace(
+      /@media \((min-width:\d+px)\) and \((max-width:\d+px)\)\{/g,
+      `@container ${containerName} ($1) and ($2){`,
+    )
+    .replace(/@media \((min-width:\d+px)\)\{/g, `@container ${containerName} ($1){`)
+    .replace(/@media \((max-width:\d+px)\)\{/g, `@container ${containerName} ($1){`)
+    .replace(/(\d*\.?\d+)vw/g, "$1cqw");
+}

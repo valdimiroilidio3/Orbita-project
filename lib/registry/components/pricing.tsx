@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { ComponentDefinition } from "../types";
+import { ET } from "../editable";
 import { Card, Container, Lead, LinkButton, SectionHeader } from "./ui";
 
 const Cta = z.object({
@@ -44,7 +45,7 @@ export const pricing: ComponentDefinition = {
     const p = rawProps as z.infer<typeof pricingProps>;
     return (
       <Container>
-        <SectionHeader eyebrow={p.eyebrow} title={p.title} intro={p.intro} />
+        <SectionHeader ctx={ctx} eyebrow={p.eyebrow} title={p.title} intro={p.intro} />
         <div className="orbita-grid-auto" style={{ ["--columns" as string]: Math.min(p.items.length, 3) }}>
           {p.items.map((tier, i) => (
             <Card
@@ -83,24 +84,24 @@ export const pricing: ComponentDefinition = {
                   margin: 0,
                 }}
               >
-                {tier.name}
+                {ET(ctx, `items.${i}.name`, tier.name)}
               </p>
               <p style={{ fontFamily: "var(--font-display)", fontSize: "var(--text-h3)", letterSpacing: "-0.02em", margin: "0.75rem 0 0", display: "flex", alignItems: "baseline", gap: "0.5rem" }}>
-                <span>{tier.price}</span>
+                <span>{ET(ctx, `items.${i}.price`, tier.price)}</span>
                 {tier.period && (
-                  <span style={{ color: "var(--color-muted)", fontSize: "var(--text-label)" }}>/ {tier.period}</span>
+                  <span style={{ color: "var(--color-muted)", fontSize: "var(--text-label)" }}>/ {ET(ctx, `items.${i}.period`, tier.period)}</span>
                 )}
               </p>
               {tier.description && (
                 <Lead style={{ fontSize: "calc(var(--text-body) * 0.92)", marginTop: "0.75rem" }}>
-                  {tier.description}
+                  {ET(ctx, `items.${i}.description`, tier.description)}
                 </Lead>
               )}
               <ul style={{ listStyle: "none", margin: "1.5rem 0", padding: 0, display: "flex", flexDirection: "column", gap: "0.75rem" }}>
                 {tier.features.map((f, j) => (
                   <li key={j} style={{ display: "flex", gap: "0.6rem", alignItems: "baseline", fontSize: "calc(var(--text-body) * 0.95)" }}>
                     <span aria-hidden style={{ width: 5, height: 5, borderRadius: "50%", background: "var(--color-accent)", flex: "none", transform: "translateY(-2px)" }} />
-                    {f}
+                    {ET(ctx, `items.${i}.features.${j}`, f)}
                   </li>
                 ))}
               </ul>
@@ -110,7 +111,7 @@ export const pricing: ComponentDefinition = {
                   variant={tier.featured ? "primary" : "outline"}
                   className="w-full"
                 >
-                  {tier.cta.label}
+                  {ET(ctx, `items.${i}.cta.label`, tier.cta.label)}
                 </LinkButton>
               )}
             </Card>

@@ -21,7 +21,7 @@ A **Site Schema é a única fonte de verdade**: editor, AI, preview, versioning 
 |---|---|---|
 | 01 | Foundation | ✅ Next.js 15 · TypeScript strict · Auth (NextAuth v5, credentials + JWT) · multi-tenant DB · Project model |
 | 02 | **Website Engine** | ✅ Site Schema (Zod) · Design Tokens · Component Registry · Page Engine · Renderer · preview seguro · geração determinística · versões · qualidade |
-| 03 | Visual Editor | 🔶 núcleo ativo no hub: reordenar (drag & drop), mover, duplicar, eliminar, ocultar por breakpoint, editar conteúdo com validação; canvas completo a seguir |
+| 03 | **Visual Editor** | ✅ Canvas WYSIWYG (mesmo renderer do deploy, CSS scoped por container queries) · seleção por clique · edição in-place (duplo clique, caminho exato do prop) · drag & drop com indicador · breakpoints M/T/D reais · inserção de secção com variant picker + placeholders honestos · undo/redo persistido (revalidado em Zod) · inspector por campo · modo Preview (iframe real) |
 | 04 | AI | ⏳ adapters limpos preparados; o pipeline atual é uma **template engine determinística** (não é um LLM — e o sistema nunca finge o contrário) |
 | 05 | Assets | ✅ upload validado (mime, tamanho), dimensões detetadas, media library, entrega autorizada |
 | 06 | Quality | ✅ checks reais: contraste WCAG (cálculo matemático), SEO, a11y, integridade de assets — sem scores inventados |
@@ -32,7 +32,7 @@ A **Site Schema é a única fonte de verdade**: editor, AI, preview, versioning 
 
 1. **Criar um projeto** (wizard de 3 passos: negócio → assets → direção visual).
 2. **Gerar o website** — o pipeline corre de verdade (cada step é medido e persistido em `generationLog`).
-3. **Editar** no hub: secções (reorder/mover/duplicar/eliminar), visibilidade por breakpoint, conteúdo com validação Zod por secção.
+3. **Editar visualmente** no hub: canvas que renderiza o site com o mesmo pipeline do deploy; clica para selecionar, duplo clique edita o texto no local (guarda para o prop exato, validado em Zod), arrasta para reordenar, comuta M/T/D, insere secções (com variant picker e placeholders), desfaz/refaz (⌘Z / ⇧⌘Z) — cada operação é uma mutação mínima sobre o Site Schema, revalidada no servidor antes de gravar.
 4. **Versionar** — versões imutáveis; *restaurar* cria sempre uma versão nova; diff real entre versões.
 5. **Partilhar preview** — link assinado (HMAC, 7 dias) que só dá acesso ao projeto, com o mesmo renderer do deploy.
 6. **Ver qualidade** — relatório real (checks passados/falhados + issues), nunca um número decorativo.

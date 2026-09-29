@@ -2,6 +2,7 @@ import type { CSSProperties } from "react";
 import { z } from "zod";
 import { AssetRef } from "@/lib/site-schema";
 import type { ComponentDefinition, SectionRenderContext } from "../types";
+import { ET } from "../editable";
 import { Container, Eyebrow, Heading, ImageFrame, ImagePlaceholder, Lead, LinkButton } from "./ui";
 
 const Cta = z.object({
@@ -32,7 +33,7 @@ function HeroContent({ p, ctx }: { p: HeroProps; ctx: SectionRenderContext }) {
       <div style={{ display: "flex", flexDirection: "column", ...align }}>
         {p.eyebrow && (
           <div style={{ marginBottom: "1.25rem" }}>
-            <Eyebrow>{p.eyebrow}</Eyebrow>
+            <Eyebrow>{ET(ctx, "eyebrow", p.eyebrow)}</Eyebrow>
           </div>
         )}
         <Heading
@@ -45,7 +46,7 @@ function HeroContent({ p, ctx }: { p: HeroProps; ctx: SectionRenderContext }) {
             marginInline: center ? "auto" : undefined,
           }}
         >
-          {p.title}
+          {ET(ctx, "title", p.title)}
         </Heading>
         {p.description && (
           <Lead
@@ -56,7 +57,7 @@ function HeroContent({ p, ctx }: { p: HeroProps; ctx: SectionRenderContext }) {
               marginInline: center ? "auto" : undefined,
             }}
           >
-            {p.description}
+            {ET(ctx, "description", p.description)}
           </Lead>
         )}
         {(p.primaryCta || p.secondaryCta) && (
@@ -71,12 +72,12 @@ function HeroContent({ p, ctx }: { p: HeroProps; ctx: SectionRenderContext }) {
           >
             {p.primaryCta && (
               <LinkButton href={ctx.linkFor(p.primaryCta.pagePath)} variant="primary">
-                {p.primaryCta.label}
+                {ET(ctx, "primaryCta.label", p.primaryCta.label)}
               </LinkButton>
             )}
             {p.secondaryCta && (
               <LinkButton href={ctx.linkFor(p.secondaryCta.pagePath)} variant="outline">
-                {p.secondaryCta.label}
+                {ET(ctx, "secondaryCta.label", p.secondaryCta.label)}
               </LinkButton>
             )}
           </div>
@@ -193,27 +194,27 @@ export const hero: ComponentDefinition = {
           <Container style={{ paddingBlock: "calc(var(--section-y) * 1.3)" }}>
             {p.eyebrow && (
               <div style={{ marginBottom: "1.25rem" }}>
-                <Eyebrow>{p.eyebrow}</Eyebrow>
+                <Eyebrow>{ET(ctx, "eyebrow", p.eyebrow)}</Eyebrow>
               </div>
             )}
             <Heading
               level={1}
               style={{ fontSize: "var(--text-display)", lineHeight: 0.98, letterSpacing: "-0.035em", maxWidth: 1100 }}
             >
-              {p.title}
+              {ET(ctx, "title", p.title)}
             </Heading>
             <div aria-hidden style={{ width: 96, height: 2, background: "var(--color-accent)", margin: "2.5rem 0" }} />
-            {p.description && <Lead style={{ maxWidth: 620 }}>{p.description}</Lead>}
+            {p.description && <Lead style={{ maxWidth: 620 }}>{ET(ctx, "description", p.description)}</Lead>}
             {(p.primaryCta || p.secondaryCta) && (
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: "2.5rem" }}>
                 {p.primaryCta && (
                   <LinkButton href={ctx.linkFor(p.primaryCta.pagePath)} variant="primary">
-                    {p.primaryCta.label}
+                    {ET(ctx, "primaryCta.label", p.primaryCta.label)}
                   </LinkButton>
                 )}
                 {p.secondaryCta && (
                   <LinkButton href={ctx.linkFor(p.secondaryCta.pagePath)} variant="outline">
-                    {p.secondaryCta.label}
+                    {ET(ctx, "secondaryCta.label", p.secondaryCta.label)}
                   </LinkButton>
                 )}
               </div>

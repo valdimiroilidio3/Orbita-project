@@ -1,7 +1,9 @@
 import { z } from "zod";
 import { AssetRef } from "@/lib/site-schema";
 import type { ComponentDefinition } from "../types";
+import { ET } from "../editable";
 import { Card, Container, ImageFrame, ImagePlaceholder, Lead, SectionHeader } from "./ui";
+import type { SectionRenderContext } from "../types";
 
 const projectItem = z.object({
   title: z.string().min(1).max(80),
@@ -17,7 +19,7 @@ const projectsProps = z.object({
   items: z.array(projectItem).min(1).max(12),
 });
 
-function ProjectMeta({ item }: { item: z.infer<typeof projectItem> }) {
+function ProjectMeta({ ctx, index, item }: { ctx: SectionRenderContext; index: number; item: z.infer<typeof projectItem> }) {
   return (
     <div style={{ padding: "1rem 0 0" }}>
       <h3
@@ -29,7 +31,7 @@ function ProjectMeta({ item }: { item: z.infer<typeof projectItem> }) {
           margin: 0,
         }}
       >
-        {item.title}
+        {ET(ctx, `items.${index}.title`, item.title)}
       </h3>
       {item.tag && (
         <p
@@ -41,7 +43,7 @@ function ProjectMeta({ item }: { item: z.infer<typeof projectItem> }) {
             margin: "0.375rem 0 0",
           }}
         >
-          {item.tag}
+          {ET(ctx, `items.${index}.tag`, item.tag)}
         </p>
       )}
     </div>
@@ -74,7 +76,7 @@ export const projects: ComponentDefinition = {
     if (ctx.variant === "featured") {
       return (
         <Container>
-          <SectionHeader eyebrow={p.eyebrow} title={p.title} intro={p.intro} />
+          <SectionHeader ctx={ctx} eyebrow={p.eyebrow} title={p.title} intro={p.intro} />
           <div style={{ marginBottom: "1.5rem" }}>
             {first.image ? (
               <ImageFrame
@@ -87,7 +89,7 @@ export const projects: ComponentDefinition = {
               <ImagePlaceholder label={first.title} style={{ aspectRatio: "21 / 9" }} />
             )}
             <div style={{ maxWidth: 520, marginTop: "1.25rem" }}>
-              <ProjectMeta item={first} />
+              <ProjectMeta ctx={ctx} index={0} item={first} />
             </div>
           </div>
           {rest.length > 0 && (
@@ -100,7 +102,7 @@ export const projects: ComponentDefinition = {
                     <ImagePlaceholder label={item.title} style={{ borderRadius: "var(--radius-md)" }} />
                   )}
                   <div style={{ padding: "0 1rem 1rem" }}>
-                    <ProjectMeta item={item} />
+                    <ProjectMeta ctx={ctx} index={i + 1} item={item} />
                   </div>
                 </Card>
               ))}
@@ -112,7 +114,7 @@ export const projects: ComponentDefinition = {
 
     return (
       <Container>
-        <SectionHeader eyebrow={p.eyebrow} title={p.title} intro={p.intro} />
+        <SectionHeader ctx={ctx} eyebrow={p.eyebrow} title={p.title} intro={p.intro} />
         <div className="orbita-grid-auto" style={{ ["--columns" as string]: 3 }}>
           {p.items.map((item, i) => (
             <Card key={i}>
@@ -122,7 +124,7 @@ export const projects: ComponentDefinition = {
                 <ImagePlaceholder label={item.title} style={{ borderRadius: "var(--radius-md)" }} />
               )}
               <div style={{ padding: "0 1rem 1rem" }}>
-                <ProjectMeta item={item} />
+                <ProjectMeta ctx={ctx} index={i} item={item} />
               </div>
             </Card>
           ))}

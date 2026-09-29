@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { ComponentDefinition } from "../types";
+import { ET } from "../editable";
 import { Card, Container, SectionHeader } from "./ui";
 
 const item = z.object({
@@ -55,7 +56,7 @@ export const testimonials: ComponentDefinition = {
                   margin: 0,
                 }}
               >
-                {p.eyebrow}
+                {ET(ctx, "eyebrow", p.eyebrow)}
               </p>
             )}
             <p
@@ -81,7 +82,7 @@ export const testimonials: ComponentDefinition = {
                   margin: 0,
                 }}
               >
-                {quote.quote}
+                {ET(ctx, `items.0.quote`, quote.quote)}
               </p>
               <footer style={{ marginTop: "1.75rem" }}>
                 <p
@@ -92,7 +93,7 @@ export const testimonials: ComponentDefinition = {
                     margin: 0,
                   }}
                 >
-                  {quote.name}
+                  {ET(ctx, `items.0.name`, quote.name)}
                 </p>
                 {quote.role && (
                   <p
@@ -102,7 +103,7 @@ export const testimonials: ComponentDefinition = {
                       margin: "0.25rem 0 0",
                     }}
                   >
-                    {quote.role}
+                    {ET(ctx, `items.0.role`, quote.role)}
                   </p>
                 )}
               </footer>
@@ -114,7 +115,7 @@ export const testimonials: ComponentDefinition = {
 
     return (
       <Container>
-        <SectionHeader eyebrow={p.eyebrow} title={p.title} />
+        <SectionHeader ctx={ctx} eyebrow={p.eyebrow} title={p.title} />
         <div className="orbita-grid-auto" style={{ ["--columns" as string]: Math.min(p.items.length, 3) }}>
           {p.items.map((quote, i) => (
             <Card key={i} style={{ padding: "1.75rem", display: "flex", flexDirection: "column", gap: "1.5rem" }}>
@@ -128,7 +129,7 @@ export const testimonials: ComponentDefinition = {
                 <span aria-hidden style={{ color: "var(--color-accent)" }}>
                   &ldquo;
                 </span>
-                {quote.quote}
+                {ET(ctx, `items.${i}.quote`, quote.quote)}
                 <span aria-hidden style={{ color: "var(--color-accent)" }}>
                   &rdquo;
                 </span>
@@ -142,11 +143,11 @@ export const testimonials: ComponentDefinition = {
                     margin: 0,
                   }}
                 >
-                  {quote.name}
+                  {ET(ctx, `items.${i}.name`, quote.name)}
                 </p>
                 {quote.role && (
                   <p style={{ color: "var(--color-muted)", fontSize: "var(--text-label)", margin: "0.25rem 0 0" }}>
-                    {quote.role}
+                    {ET(ctx, `items.${i}.role`, quote.role)}
                   </p>
                 )}
               </div>

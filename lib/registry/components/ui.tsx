@@ -5,6 +5,7 @@
  */
 import type { CSSProperties, ReactNode } from "react";
 import { cn } from "@/lib/utils/cn";
+import { ET } from "../editable";
 import type { SectionRenderContext } from "../types";
 
 type Ctx = SectionRenderContext;
@@ -185,11 +186,13 @@ export function Lead({
 }
 
 export function SectionHeader({
+  ctx,
   eyebrow,
   title,
   intro,
   style,
 }: {
+  ctx: SectionRenderContext;
   eyebrow?: string;
   title?: string;
   intro?: string;
@@ -200,10 +203,10 @@ export function SectionHeader({
     <div style={{ marginBottom: "3rem", ...style }}>
       {eyebrow && (
         <div style={{ marginBottom: "1rem" }}>
-          <Eyebrow>{eyebrow}</Eyebrow>
+          <Eyebrow>{ET(ctx, "eyebrow", eyebrow)}</Eyebrow>
         </div>
       )}
-      {title && <Heading level={2}>{title}</Heading>}
+      {title && <Heading level={2}>{ET(ctx, "title", title)}</Heading>}
       {intro && (
         <Lead
           style={{
@@ -211,7 +214,7 @@ export function SectionHeader({
             marginTop: title ? "1rem" : undefined,
           }}
         >
-          {intro}
+          {ET(ctx, "intro", intro)}
         </Lead>
       )}
     </div>

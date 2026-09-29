@@ -5,7 +5,7 @@
  * Never rewrites the whole website for a small request; never destroys
  * unrelated changes. Versioning snapshots the result.
  */
-import type { SiteSchemaType } from "@/lib/site-schema";
+import type { SectionType, SiteSchemaType } from "@/lib/site-schema";
 
 export type MutResult =
   | { ok: true; schema: SiteSchemaType; changed: boolean }
@@ -69,6 +69,24 @@ export function duplicateSection(schema: SiteSchemaType, pageId: string, section
   const copy: (typeof page.sections)[number] = structuredClone(source);
   copy.id = newId;
   page.sections.splice(index + 1, 0, copy);
+  return { ok: true, schema: next, changed: true };
+}
+
+export function insertSection(
+  schema: SiteSchemaType,
+  pageId: string,
+  index: number,
+  section: SectionType,
+): MutResult {
+  const next = structuredClone(schema);
+  const page = findPage(next, pageId);
+  if (!page) return { ok: false, error: "página não encontrada" };
+  const existing = new Set(next.pages.flatMap((p) => p.sections.map((s) => s.id)));
+  if (existing.has(section.id)) {
+    return { ok: false, error: `id de secção "${section.id}" já existe no site` };
+  }
+  const at = Math.max(0, Math.min(index, page.sections.length));
+  page.sections.splice(at, 0, structuredClone(section));
   return { ok: true, schema: next, changed: true };
 }
 

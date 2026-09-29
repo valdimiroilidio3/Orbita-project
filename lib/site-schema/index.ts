@@ -51,6 +51,7 @@ export const AssetRef = z.union([
 export type AssetRefType = z.infer<typeof AssetRef>;
 
 const rem = z.number().positive().max(100);
+const nonNegRem = z.number().min(0).max(100);
 const responsiveRem = z.object({ mobile: rem, tablet: rem, desktop: rem });
 
 export const FontStackId = z.enum(["grotesk", "sans", "serif", "mono", "display"]);
@@ -98,7 +99,7 @@ export const ThemeSchema = z.object({
     sectionY: responsiveRem,
     container: z.object({ maxWidth: rem }),
   }),
-  radius: z.object({ sm: rem, md: rem, lg: rem }),
+  radius: z.object({ sm: nonNegRem, md: nonNegRem, lg: nonNegRem }),
   shadows: z
     .object({ sm: z.string(), md: z.string(), lg: z.string() })
     .optional(),

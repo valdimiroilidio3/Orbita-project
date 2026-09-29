@@ -5,12 +5,14 @@ import {
   deleteSection,
   diffSchemas,
   duplicateSection,
+  insertSection,
   moveSection,
   reorderSections,
   setSectionHidden,
   updateSectionProps,
 } from "@/lib/engine/mutations";
 import { migrateSiteSchema } from "@/lib/site-schema/migrations";
+import { SiteSchema } from "@/lib/site-schema";
 import { getComponent } from "@/lib/registry";
 import type { SiteSchemaType } from "@/lib/site-schema";
 
@@ -139,5 +141,58 @@ describe("versioning & migrations", () => {
     expect(migrateSiteSchema({ nope: true }).ok).toBe(false);
     expect(migrateSiteSchema(null).ok).toBe(false);
     expect(migrateSiteSchema("string").ok).toBe(false);
+  });
+});
+
+describe("insertSection", () => {
+  function makeSection(id: string, type: "stats" | "faq" = "stats"): SiteSchemaType["pages"][number]["sections"][number] {
+    return {
+      id,
+      type,
+      variant: type === "stats" ? "band" : "accordion",
+      props:
+        type === "stats"
+          ? { items: [{ value: "10", label: "anos" }] }
+          : { items: [{ q: "Pergunta?", a: "Resposta." }] },
+      responsive: { mobile: {}, tablet: {}, desktop: {} },
+      animation: { enabled: true, effect: "fade-up", delayMs: 0 },
+    };
+  }
+
+  it("inserts at the requested index and stays canonical", async () => {
+    const schema = await makeSchema();
+    const page = schema.pages[0];
+    const result = insertSection(schema, page.id, 1, makeSection("stats-ab12"));
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.schema.pages[0].sections[1].id).toBe("stats-ab12");
+    expect(result.schema.pages[0].sections.length).toBe(page.sections.length + 1);
+    expect(SiteSchema.safeParse(result.schema).success).toBe(true);
+    // source schema untouched (immutable)
+    expect(schema.pages[0].sections.length).toBe(page.sections.length);
+  });
+
+  it("rejects ids already used anywhere in the site", async () => {
+    const schema = await makeSchema();
+    const page = schema.pages[0];
+    const existingId = page.sections[0].id;
+    const result = insertSection(schema, page.id, 0, makeSection(existingId));
+    expect(result.ok).toBe(false);
+  });
+
+  it("clamps out-of-range indexes to the end of the page", async () => {
+    const schema = await makeSchema();
+    const page = schema.pages[0];
+    const result = insertSection(schema, page.id, 999, makeSection("stats-zz99"));
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const sections = result.schema.pages[0].sections;
+    expect(sections[sections.length - 1].id).toBe("stats-zz99");
+  });
+
+  it("rejects unknown pages", async () => {
+    const schema = await makeSchema();
+    const result = insertSection(schema, "nope", 0, makeSection("stats-ab12"));
+    expect(result.ok).toBe(false);
   });
 });

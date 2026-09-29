@@ -39,6 +39,17 @@ export type SectionRenderContext = {
   contactPayload: ContactPayload | null;
   contactSubmitted: boolean;
   contactError: boolean;
+  /**
+   * Visual-editor mode. When true, components expose their user-facing text
+   * as inline-editable slots (see `ET`) and the renderer marks section
+   * chrome (labels, selection). Generated/deployed sites never set this —
+   * their DOM is identical to edit-off.
+   */
+  editMode?: boolean;
+  /** Section id currently selected in the visual editor (edit mode only). */
+  selectedId?: string;
+  /** Human labels for section chips, keyed by section id (edit mode only). */
+  editLabels?: Record<string, string>;
 };
 
 export type VariantDefinition = {

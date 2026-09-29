@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { ComponentDefinition } from "../types";
+import { ET } from "../editable";
 import { Container } from "./ui";
 
 const statsProps = z.object({
@@ -22,7 +23,7 @@ export const stats: ComponentDefinition = {
       defaultProps: {},
     },
   },
-  render(rawProps) {
+  render(rawProps, ctx) {
     const p = rawProps as z.infer<typeof statsProps>;
     return (
       <Container>
@@ -46,7 +47,7 @@ export const stats: ComponentDefinition = {
                   margin: 0,
                 }}
               >
-                {item.value}
+                {ET(ctx, `items.${i}.value`, item.value)}
               </p>
               <p
                 style={{
@@ -57,7 +58,7 @@ export const stats: ComponentDefinition = {
                   margin: "0.625rem 0 0",
                 }}
               >
-                {item.label}
+                {ET(ctx, `items.${i}.label`, item.label)}
               </p>
             </div>
           ))}

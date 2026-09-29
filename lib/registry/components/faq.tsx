@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { ComponentDefinition } from "../types";
+import { ET } from "../editable";
 import { Container, Lead, SectionHeader } from "./ui";
 
 const faqProps = z.object({
@@ -43,14 +44,14 @@ export const faq: ComponentDefinition = {
       defaultProps: {},
     },
   },
-  render(rawProps) {
+  render(rawProps, ctx) {
     const p = rawProps as z.infer<typeof faqProps>;
     return (
       <Container style={{ maxWidth: "50rem" }}>
-        <SectionHeader eyebrow={p.eyebrow} title={p.title} />
+        <SectionHeader ctx={ctx} eyebrow={p.eyebrow} title={p.title} />
         <div style={{ borderTop: "1px solid var(--color-border)" }}>
           {p.items.map((entry, i) => (
-            <details key={i}>
+            <details key={i} open={ctx.editMode ? true : undefined}>
               <summary
                 style={{
                   display: "flex",
@@ -65,11 +66,11 @@ export const faq: ComponentDefinition = {
                   color: "var(--color-foreground)",
                 }}
               >
-                <span>{entry.q}</span>
+                <span>{ET(ctx, `items.${i}.q`, entry.q)}</span>
                 <PlusIcon />
               </summary>
               <Lead style={{ padding: "1.25rem 0", fontSize: "calc(var(--text-body) * 0.95)", maxWidth: "42rem" }}>
-                {entry.a}
+                {ET(ctx, `items.${i}.a`, entry.a)}
               </Lead>
             </details>
           ))}

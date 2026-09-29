@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { AssetRef } from "@/lib/site-schema";
 import type { ComponentDefinition } from "../types";
+import { ET } from "../editable";
 import { Container, Eyebrow, Heading, ImageFrame, ImagePlaceholder, Lead } from "./ui";
 
 const splitProps = z.object({
@@ -47,7 +48,7 @@ export const about: ComponentDefinition = {
         <Container>
           {p.eyebrow && (
             <div style={{ marginBottom: "1.5rem" }}>
-              <Eyebrow>{p.eyebrow}</Eyebrow>
+              <Eyebrow>{ET(ctx, "eyebrow", p.eyebrow)}</Eyebrow>
             </div>
           )}
           <p
@@ -61,11 +62,11 @@ export const about: ComponentDefinition = {
               maxWidth: 1100,
             }}
           >
-            {p.statement}
+            {ET(ctx, "statement", p.statement)}
           </p>
           {p.signature && (
             <p style={{ color: "var(--color-muted)", fontSize: "var(--text-label)", marginTop: "1.5rem", margin: "1.5rem 0 0" }}>
-              {p.signature}
+              {ET(ctx, "signature", p.signature)}
             </p>
           )}
         </Container>
@@ -85,13 +86,13 @@ export const about: ComponentDefinition = {
         <div>
           {p.eyebrow && (
             <div style={{ marginBottom: "1rem" }}>
-              <Eyebrow>{p.eyebrow}</Eyebrow>
+              <Eyebrow>{ET(ctx, "eyebrow", p.eyebrow)}</Eyebrow>
             </div>
           )}
-          <Heading level={2}>{p.title}</Heading>
+          <Heading level={2}>{ET(ctx, "title", p.title)}</Heading>
           <div style={{ marginTop: "1.5rem", display: "flex", flexDirection: "column", gap: "1rem", maxWidth: 560 }}>
             {p.paragraphs.map((text, i) => (
-              <Lead key={i}>{text}</Lead>
+              <Lead key={i}>{ET(ctx, `paragraphs.${i}`, text)}</Lead>
             ))}
           </div>
           {p.bullets && p.bullets.length > 0 && (
@@ -100,8 +101,8 @@ export const about: ComponentDefinition = {
                 <li key={i} style={{ display: "flex", gap: "0.75rem", alignItems: "baseline" }}>
                   <span aria-hidden style={{ width: 6, height: 6, borderRadius: 1, background: "var(--color-accent)", flex: "none", transform: "translateY(-1px)" }} />
                   <span style={{ fontSize: "calc(var(--text-body) * 0.95)" }}>
-                    <strong style={{ fontWeight: 600 }}>{b.label}</strong>
-                    {b.description ? <span style={{ color: "var(--color-muted)" }}> — {b.description}</span> : null}
+                    <strong style={{ fontWeight: 600 }}>{ET(ctx, `bullets.${i}.label`, b.label)}</strong>
+                    {b.description ? <span style={{ color: "var(--color-muted)" }}> — {ET(ctx, `bullets.${i}.description`, b.description)}</span> : null}
                   </span>
                 </li>
               ))}

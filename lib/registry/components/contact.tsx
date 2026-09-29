@@ -1,7 +1,9 @@
 import type { ReactNode } from "react";
+import type { SectionRenderContext } from "../types";
 import { z } from "zod";
 import { submitContact } from "@/lib/server/contact";
 import type { ComponentDefinition } from "../types";
+import { ET } from "../editable";
 import { CheckIcon, Container, Eyebrow, Heading, Lead, uiStrings } from "./ui";
 
 const contactProps = z.object({
@@ -14,7 +16,7 @@ const contactProps = z.object({
   hours: z.string().max(80).optional(),
 });
 
-function InfoList({ items }: { items: { label: string; value: string }[] }) {
+function InfoList({ ctx, items }: { ctx: SectionRenderContext; items: { label: string; value: string; path: string }[] }) {
   if (items.length === 0) return null;
   return (
     <dl style={{ margin: "2rem 0 0", display: "flex", flexDirection: "column", gap: "1.25rem" }}>
@@ -30,7 +32,7 @@ function InfoList({ items }: { items: { label: string; value: string }[] }) {
           >
             {it.label}
           </dt>
-          <dd style={{ margin: "0.25rem 0 0", fontSize: "calc(var(--text-body) * 0.98)" }}>{it.value}</dd>
+          <dd style={{ margin: "0.25rem 0 0", fontSize: "calc(var(--text-body) * 0.98)" }}>{it.path ? ET(ctx, it.path, it.value) : it.value}</dd>
         </div>
       ))}
     </dl>
@@ -139,21 +141,21 @@ export const contact: ComponentDefinition = {
     const p = rawProps as z.infer<typeof contactProps>;
     const t = uiStrings(ctx);
     const infoItems = [
-      p.email ? { label: t.email, value: p.email } : null,
-      p.phone ? { label: t.phone, value: p.phone } : null,
-      p.address ? { label: t.address, value: p.address } : null,
-      p.hours ? { label: t.hours, value: p.hours } : null,
-    ].filter(Boolean) as { label: string; value: string }[];
+      p.email ? { label: t.email, value: p.email, path: "email" } : null,
+      p.phone ? { label: t.phone, value: p.phone, path: "phone" } : null,
+      p.address ? { label: t.address, value: p.address, path: "address" } : null,
+      p.hours ? { label: t.hours, value: p.hours, path: "hours" } : null,
+    ].filter(Boolean) as { label: string; value: string; path: string }[];
 
     const header: ReactNode = (
       <>
         {p.eyebrow && (
           <div style={{ marginBottom: "1rem" }}>
-            <Eyebrow>{p.eyebrow}</Eyebrow>
+            <Eyebrow>{ET(ctx, "eyebrow", p.eyebrow)}</Eyebrow>
           </div>
         )}
-        <Heading level={2}>{p.title}</Heading>
-        {p.description && <Lead style={{ maxWidth: 520, marginTop: "1rem" }}>{p.description}</Lead>}
+        <Heading level={2}>{ET(ctx, "title", p.title)}</Heading>
+        {p.description && <Lead style={{ maxWidth: 520, marginTop: "1rem" }}>{ET(ctx, "description", p.description)}</Lead>}
       </>
     );
 
@@ -182,7 +184,7 @@ export const contact: ComponentDefinition = {
         <Container className="orbita-contact-split">
           <div>
             {header}
-            <InfoList items={infoItems} />
+            <InfoList ctx={ctx} items={infoItems} />
           </div>
           <div>
             {success}
@@ -196,7 +198,7 @@ export const contact: ComponentDefinition = {
     return (
       <Container style={{ maxWidth: "44rem" }}>
         {header}
-        <InfoList items={infoItems} />
+        <InfoList ctx={ctx} items={infoItems} />
         {success}
         {error}
         {form}

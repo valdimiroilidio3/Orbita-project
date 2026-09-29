@@ -31,15 +31,18 @@ import { generateWebsite } from "@/lib/engine/generator";
 import {
   deleteSection,
   duplicateSection,
+  insertSection,
   moveSection,
   reorderSections,
   setSectionHidden,
   updateSectionProps,
   type MutResult,
 } from "@/lib/engine/mutations";
+import { placeholderProps } from "@/lib/editor/placeholders";
 import { signPreviewToken } from "@/lib/preview/token";
 import { getComponent } from "@/lib/registry";
-import type { SiteSchemaType } from "@/lib/site-schema";
+import type { ComponentType } from "@/lib/site-schema/catalog";
+import { SiteSchema, type SectionType, type SiteSchemaType } from "@/lib/site-schema";
 import { migrateSiteSchema } from "@/lib/site-schema/migrations";
 import { hashPassword } from "./password";
 import { requireOrg, requireProject } from "./authz";
@@ -401,6 +404,78 @@ export async function reorderSectionsAction(formData: FormData): Promise<ActionR
   const result = reorderSections(schema, pageId, orderedIds);
   if (!result.ok) return { ok: false, error: result.error };
   saveSchema(projectId, result.schema);
+  revalidateProject(projectId);
+  return { ok: true, savedAt: Date.now() };
+}
+
+const SectionIdShape = /^[A-Za-z0-9][A-Za-z0-9-]{0,47}$/;
+
+export async function addSectionAction(formData: FormData): Promise<ActionResult> {
+  const projectId = String(formData.get("projectId") ?? "");
+  const pageId = String(formData.get("pageId") ?? "");
+  const type = String(formData.get("type") ?? "");
+  const variant = String(formData.get("variant") ?? "");
+  const index = Number(formData.get("index") ?? -1);
+  const requestedId = String(formData.get("id") ?? "");
+
+  await requireProject(projectId);
+  const def = getComponent(type as ComponentType);
+  const vdef = def?.variants[variant];
+  if (!def || !vdef) return { ok: false, error: "Componente ou variante desconhecido." };
+
+  let props: Record<string, unknown>;
+  try {
+    props = placeholderProps(vdef);
+  } catch {
+    return { ok: false, error: "Não foi possível criar o conteúdo inicial da secção." };
+  }
+
+  const schema = await loadSchema(projectId);
+  if (!schema) return { ok: false, error: "Este projeto ainda não tem um website gerado." };
+
+  // The editor generates the id locally (needed for optimistic updates);
+  // we re-check the shape and uniqueness server-side.
+  const id = SectionIdShape.test(requestedId)
+    ? requestedId
+    : `${type}-${randomBytes(2).toString("hex")}`;
+  const section: SectionType = {
+    id,
+    type: type as SectionType["type"],
+    variant,
+    props,
+    responsive: { mobile: {}, tablet: {}, desktop: {} },
+    animation: { enabled: true, effect: "fade-up", delayMs: 0 },
+  };
+  const result = insertSection(schema, pageId, Number.isFinite(index) ? index : schema.pages[0]?.sections.length ?? 0, section);
+  if (!result.ok) return { ok: false, error: result.error };
+
+  // Defense in depth: the full schema is revalidated before it is stored.
+  const canonical = SiteSchema.safeParse(result.schema);
+  if (!canonical.success) {
+    return { ok: false, error: `A secção não pôde ser adicionada: ${canonical.error.issues[0]?.message ?? ""}` };
+  }
+  saveSchema(projectId, canonical.data);
+  revalidateProject(projectId);
+  return { ok: true, savedAt: Date.now() };
+}
+
+export async function applySchemaAction(formData: FormData): Promise<ActionResult> {
+  // Undo/redo persistence: the client sends a full previous snapshot and the
+  // server revalidates it from scratch — a tampered or drifted schema is
+  // rejected instead of stored.
+  const projectId = String(formData.get("projectId") ?? "");
+  await requireProject(projectId);
+  let raw: unknown;
+  try {
+    raw = JSON.parse(String(formData.get("schema") ?? "null"));
+  } catch {
+    return { ok: false, error: "Schema inválido (JSON)." };
+  }
+  const parsed = SiteSchema.safeParse(raw);
+  if (!parsed.success) {
+    return { ok: false, error: `Schema inválido: ${parsed.error.issues[0]?.message ?? ""}` };
+  }
+  updateProject(projectId, { schemaJson: parsed.data, status: "ready" });
   revalidateProject(projectId);
   return { ok: true, savedAt: Date.now() };
 }

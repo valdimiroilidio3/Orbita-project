@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { ComponentDefinition } from "../types";
+import { ET } from "../editable";
 import { Container, uiStrings } from "./ui";
 
 const footerProps = z.object({
@@ -73,7 +74,7 @@ export const footer: ComponentDefinition = {
                 {nav.logo.text}
               </p>
               {p.description && (
-                <p style={{ ...small, maxWidth: 320, marginTop: "0.75rem" }}>{p.description}</p>
+                <p style={{ ...small, maxWidth: 320, marginTop: "0.75rem" }}>{ET(ctx, "description", p.description)}</p>
               )}
             </div>
             <nav aria-label={t.sitemap}>
@@ -95,9 +96,9 @@ export const footer: ComponentDefinition = {
                 {t.contact}
               </p>
               <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "0.625rem" }}>
-                {p.email && <li style={small}>{p.email}</li>}
-                {p.phone && <li style={small}>{p.phone}</li>}
-                {p.address && <li style={small}>{p.address}</li>}
+                {p.email && <li style={small}>{ET(ctx, "email", p.email)}</li>}
+                {p.phone && <li style={small}>{ET(ctx, "phone", p.phone)}</li>}
+                {p.address && <li style={small}>{ET(ctx, "address", p.address)}</li>}
               </ul>
             </div>
           </div>
