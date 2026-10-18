@@ -1,83 +1,93 @@
 # ORBITA CHAT — Modelo de dados
 
-> Schema inicial aplicado por `supabase/migrations/0001_initial_schema.sql`.
-> Tipos TypeScript espelhados em `@orbita/shared` e `@orbita/database`.
+> Schema: `supabase/migrations/0001_initial_schema.sql` (base),
+> `0002_integrity.sql` (integridade) e `0003_rls_policies.sql` (RLS multi-tenant).
+> Tipos TypeScript: `@orbita/shared` (domínio) e `@orbita/database` (schema).
+> Segurança: ver [`docs/security.md`](security.md).
 
-## Entidades (Sprint 1)
+## Entidades
 
 ```
 organizations 1 ─── * memberships * ─── 1 (auth.users)
       │
       ├── 1 ─── * agents
       │
-      └── 1 ─── * calls * ─── 0..1 agents
+      └── 1 ─── * calls * ─── 0..1 agents   (FK composta impede agentes de outra org)
 ```
 
 ### `organizations`
 
-| Coluna                      | Tipo        | Notas               |
-| --------------------------- | ----------- | ------------------- |
-| `id`                        | uuid PK     | `gen_random_uuid()` |
-| `name`                      | text        |                     |
-| `slug`                      | text        | `unique`            |
-| `created_at` / `updated_at` | timestamptz | default `now()`     |
+| Coluna | Tipo | Notas |
+| --- | --- | --- |
+| `id` | uuid PK | `gen_random_uuid()` |
+| `name` | text | 1..120 (validado no servidor) |
+| `slug` | text | `unique`; `[a-z0-9-]`, 3..48 (validado em Zod e no RPC) |
+| `created_at` / `updated_at` | timestamptz | `updated_at` via trigger |
 
 ### `memberships`
 
-| Coluna            | Tipo                     | Notas                                             |
-| ----------------- | ------------------------ | ------------------------------------------------- |
-| `organization_id` | uuid FK → organizations  | PK composta com `user_id`                         |
-| `user_id`         | uuid FK → auth.users     | cascade                                           |
-| `role`            | enum `organization_role` | `owner` \| `admin` \| `member` (default `member`) |
-| `created_at`      | timestamptz              |                                                   |
+| Coluna | Tipo | Notas |
+| --- | --- | --- |
+| `organization_id` + `user_id` | PK composta | unicidade garantida; um utilizador pode ter várias organizações |
+| `role` | enum | `owner` \| `admin` \| `member` |
+| `created_at` | timestamptz | |
+
+Proteções (trigger `memberships_guard`): role não auto-atribuída; só owner atribui/altera owners; **último owner nunca é removido**; organização/utilizador imutáveis. INSERT direto negado (só via RPC `create_organization`).
 
 ### `agents`
 
-| Coluna                      | Tipo                    | Notas                                                    |
-| --------------------------- | ----------------------- | -------------------------------------------------------- |
-| `id`                        | uuid PK                 |                                                          |
-| `organization_id`           | uuid FK → organizations | `unique (organization_id, id)` (FK composta por `calls`) |
-| `name`                      | text                    |                                                          |
-| `description`               | text                    | nullable                                                 |
-| `instructions`              | text                    | default `''`                                             |
-| `language`                  | text                    | default `'pt-PT'`                                        |
-| `status`                    | enum `agent_status`     | `draft` \| `active` \| `paused` \| `archived`            |
-| `configuration`             | jsonb                   | default `'{}'`                                           |
-| `created_by`                | uuid FK → auth.users    | `on delete set null`                                     |
-| `created_at` / `updated_at` | timestamptz             |                                                          |
+| Coluna | Tipo | Notas |
+| --- | --- | --- |
+| `id` | uuid PK | `unique (organization_id, id)` para FK composta de `calls` |
+| `organization_id` | uuid FK | imutável (trigger anti-transferência) |
+| `name` | text | 1..120 |
+| `description` | text | nullable |
+| `instructions` | text | max 20 000 (CHECK) |
+| `language` | text | default `pt-PT` |
+| `status` | enum | `draft` \| `active` \| `paused` \| `archived` |
+| `voice_config` | jsonb | apenas objeto JSON; **nunca segredos de fornecedores** |
+| `created_by` | uuid FK → auth.users | `on delete set null`; INSERT exige `= auth.uid()` |
+| `created_at` / `updated_at` | timestamptz | `updated_at` via trigger |
 
 ### `calls`
 
-| Coluna                                   | Tipo                    | Notas                                                                                                                    |
-| ---------------------------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `id`                                     | uuid PK                 |                                                                                                                          |
-| `organization_id`                        | uuid FK → organizations |                                                                                                                          |
-| `agent_id`                               | uuid                    | FK composta `(organization_id, agent_id)` → agents, `on delete set null`                                                 |
-| `provider` / `provider_call_id`          | text                    | `unique (provider, provider_call_id)`                                                                                    |
-| `direction`                              | enum `call_direction`   | `inbound` \| `outbound`                                                                                                  |
-| `status`                                 | enum `call_status`      | `queued`, `initiating`, `ringing`, `in_progress`, `completed`, `failed`, `busy`, `no_answer`, `cancelled`, `transferred` |
-| `from_number` / `to_number`              | text                    |                                                                                                                          |
-| `duration_seconds`                       | integer                 | `check >= 0`                                                                                                             |
-| `estimated_cost`                         | numeric(12,6)           | `check >= 0`                                                                                                             |
-| `currency`                               | char(3)                 | default `'EUR'`                                                                                                          |
-| `started_at` / `ended_at` / `created_at` | timestamptz             |                                                                                                                          |
+| Coluna | Tipo | Notas |
+| --- | --- | --- |
+| `id` | uuid PK | |
+| `organization_id` | uuid FK | imutável (trigger anti-transferência) |
+| `agent_id` | uuid | FK composta `(organization_id, agent_id)` → agents, `on delete set null` — **histórico retido** se o agente for eliminado |
+| `direction` | enum | `inbound` \| `outbound` |
+| `status` | enum | `queued` … `transferred`; estados terminais não transitam (trigger) |
+| `from_number` / `to_number` | text | privados — expostos apenas a membros via RLS |
+| `started_at` / `ended_at` | timestamptz | `started_at <= ended_at` (CHECK) |
+| `duration_seconds` | integer | `>= 0` |
+| `estimated_cost` | numeric(12,6) | `>= 0` |
+| `currency` | char(3) | default `EUR` |
+| `provider` / `provider_call_id` | text | `unique (organization_id, provider, provider_call_id)` |
+| `created_at` / `updated_at` | timestamptz | `updated_at` via trigger |
+
+**Retenção**: não existe política DELETE em `calls` — membros não conseguem
+apagar histórico operacional/financeiro.
 
 ## Índices
 
-- `agents_org_created_idx` — agents (`organization_id`, `created_at` desc)
-- `calls_org_created_idx` — calls (`organization_id`, `created_at` desc)
-- `calls_org_status_idx` — calls (`organization_id`, `status`)
+- `agents_org_created_idx` — (organization_id, created_at desc)
+- `agents_org_status_idx` — (organization_id, status)
+- `calls_org_created_idx` — (organization_id, created_at desc)
+- `calls_org_status_idx` — (organization_id, status)
+- `calls_org_started_idx` — (organization_id, started_at desc)
+- `calls_org_agent_created_idx` — (organization_id, agent_id, created_at desc)
+- `memberships_user_idx` — (user_id)
 
 ## Segurança (RLS)
 
-RLS ativo em todas as tabelas. Políticas de **SELECT** para `authenticated`, limitadas a membros da organização (via `memberships` + `auth.uid()`).
+RLS ativo em todas as tabelas com políticas SELECT/INSERT/UPDATE/DELETE
+conforme a matriz de papéis em [`docs/security.md`](security.md). Criação de
+organizações exclusivamente via RPC transacional `create_organization`.
 
-**Pendente antes de escrita na UI/API:**
+## Extensibilidade (fases futuras)
 
-- Políticas INSERT/UPDATE/DELETE por função (validar `owner`/`admin`).
-- Processo seguro de criação de organizações (primeiro `owner`).
-- Isolamento de todos os novos recursos; a API de serviço valida a organização em cada operação.
-
-## Tabelas futuras (fora do Sprint 1)
-
-`events`, `contacts`, `transcripts`, `recordings`, `billing` — a criar nas fases correspondentes, com as mesmas regras de isolamento por organização.
+`contacts`, `automations`, `integrations`, `usage_records`, `subscriptions` —
+previstas, **não criadas** nesta fase (evitar tabelas desnecessárias). Novas
+entidades seguem o mesmo padrão: `organization_id` obrigatório, RLS por
+membership, `updated_at` por trigger.

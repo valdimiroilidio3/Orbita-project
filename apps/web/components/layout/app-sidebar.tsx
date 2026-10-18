@@ -15,6 +15,10 @@ export interface AppSidebarProps {
   collapsed?: boolean;
   onToggleCollapsed?: () => void;
   onNavigate?: () => void;
+  /** Organização ativa validada no servidor. */
+  organization?: { id: string; name: string; slug: string; role: string } | null;
+  /** Sem Supabase configurado: identificação de modo demo. */
+  demoMode?: boolean;
 }
 
 /**
@@ -27,9 +31,12 @@ export function AppSidebar({
   collapsed = false,
   onToggleCollapsed,
   onNavigate,
+  organization = null,
+  demoMode = false,
 }: AppSidebarProps) {
   const pathname = usePathname();
   const isCollapsed = variant === 'desktop' && collapsed;
+  const workspaceName = organization ? organization.name : 'ORBITA Demo';
 
   return (
     <TooltipProvider delayDuration={300}>
@@ -62,13 +69,26 @@ export function AppSidebar({
           <div className="mx-4 rounded-lg border border-border bg-background px-3.5 py-2.5">
             <p className="text-caption text-muted">Organização</p>
             <p className="mt-0.5 flex items-center gap-2 text-small font-semibold">
-              ORBITA Demo
-              <Badge variant="accent">Demo</Badge>
+              <span className="max-w-36 truncate">{workspaceName}</span>
+              {organization ? (
+                <Badge variant="neutral" className="capitalize">
+                  {organization.role}
+                </Badge>
+              ) : (
+                <Badge variant="accent">Demo</Badge>
+              )}
             </p>
           </div>
         ) : (
           <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-background text-small font-semibold text-primary">
-            OD
+            {organization
+              ? organization.name
+                  .split(/\s+/)
+                  .filter(Boolean)
+                  .slice(0, 2)
+                  .map((part) => part[0]?.toUpperCase() ?? '')
+                  .join('')
+              : 'OD'}
           </div>
         )}
 
@@ -92,10 +112,14 @@ export function AppSidebar({
 
         {!isCollapsed ? (
           <div className="m-4 rounded-lg border border-border bg-background p-3.5">
-            <p className="text-small font-semibold">Utilizador Demo</p>
-            <p className="text-caption text-muted">demo@orbita.chat</p>
+            <p className="text-small font-semibold">{demoMode ? 'Utilizador Demo' : 'Sessão ativa'}</p>
+            <p className="text-caption text-muted">
+              {demoMode ? 'demo@orbita.chat' : 'Autenticado via Supabase Auth'}
+            </p>
             <p className="mt-2 text-caption leading-relaxed text-muted">
-              Sessão e perfil serão ligados à autenticação numa fase seguinte.
+              {demoMode
+                ? 'Sessão e perfil serão ligados à autenticação quando o Supabase estiver configurado.'
+                : 'Perfil e membros da equipa serão geridos numa fase seguinte.'}
             </p>
           </div>
         ) : null}

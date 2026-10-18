@@ -3,7 +3,7 @@
 import { Check, ChevronsUpDown, Menu, Search } from 'lucide-react';
 
 import { NotificationIndicator } from '@/components/layout/notification-indicator';
-import { UserMenu } from '@/components/layout/user-menu';
+import { UserMenu, type UserMenuProps } from '@/components/layout/user-menu';
 import { Badge } from '@/components/ui/badge';
 import {
   DropdownMenu,
@@ -19,13 +19,16 @@ export interface TopbarProps {
   onMenuClick: () => void;
   /** Slot de breadcrumbs (visível a partir de tablet). */
   breadcrumbs?: React.ReactNode;
+  user?: UserMenuProps['user'];
+  organization?: { id: string; name: string; slug: string; role: string } | null;
+  demoMode?: boolean;
 }
 
 /**
  * Topbar: navegação mobile, pesquisa, seletor de organização,
- * notificações e menu de utilizador.
+ * notificações e menu de utilizador (sessão real ou demo identificado).
  */
-export function Topbar({ onMenuClick, breadcrumbs }: TopbarProps) {
+export function Topbar({ onMenuClick, breadcrumbs, user = null, organization = null, demoMode = false }: TopbarProps) {
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-surface/95 px-4 backdrop-blur-sm sm:px-6">
       <button
@@ -40,10 +43,7 @@ export function Topbar({ onMenuClick, breadcrumbs }: TopbarProps) {
       {breadcrumbs ? <div className="hidden lg:block">{breadcrumbs}</div> : null}
 
       <div className="relative hidden flex-1 sm:block">
-        <Search
-          className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
-          aria-hidden
-        />
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" aria-hidden />
         <Input
           type="search"
           placeholder="Pesquisar agentes, chamadas…"
@@ -61,24 +61,40 @@ export function Topbar({ onMenuClick, breadcrumbs }: TopbarProps) {
               aria-label="Selecionar organização"
               aria-haspopup="menu"
             >
-              ORBITA Demo
-              <Badge variant="accent">Demo</Badge>
+              <span className="max-w-48 truncate">
+                {organization ? organization.name : 'ORBITA Demo'}
+              </span>
+              {organization ? (
+                <Badge variant="neutral" className="capitalize">
+                  {organization.role}
+                </Badge>
+              ) : (
+                <Badge variant="accent">Demo</Badge>
+              )}
               <ChevronsUpDown className="h-3.5 w-3.5 text-muted" aria-hidden />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Organizações</DropdownMenuLabel>
+            <DropdownMenuLabel>Organização ativa</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem disabled>
               <Check className="text-primary" aria-hidden />
-              ORBITA Demo
+              {organization ? organization.name : 'ORBITA Demo'}
             </DropdownMenuItem>
-            <DropdownMenuItem disabled>Criar organização (em breve)</DropdownMenuItem>
+            {organization ? (
+              <DropdownMenuItem disabled>
+                <span className="text-caption text-muted">
+                  Role: {organization.role} · troca de organização numa fase seguinte
+                </span>
+              </DropdownMenuItem>
+            ) : (
+              <DropdownMenuItem disabled>Criar organização requer sessão</DropdownMenuItem>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
 
         <NotificationIndicator />
-        <UserMenu />
+        <UserMenu user={user} organizationName={organization?.name} demoMode={demoMode} />
       </div>
     </header>
   );

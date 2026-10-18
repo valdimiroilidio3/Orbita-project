@@ -41,10 +41,12 @@ No Sprint 1 **não existem chamadas reais, IA, telefonia ou billing**. Os ecrãs
 
 ## Segurança
 
-- Nunca usar `NEXT_PUBLIC_` em segredos.
+- Nunca usar `NEXT_PUBLIC_` em segredos; `SUPABASE_SERVICE_ROLE_KEY` é opcional e apenas de servidor.
 - Nunca comitar `.env.local` ou credenciais (`.gitignore` cobre isso).
-- RLS ativo em todas as tabelas do schema inicial; políticas de **leitura** para membros da organização.
-- Políticas de escrita (INSERT/UPDATE/DELETE) por função (owner/admin/member), criação segura de organizações e isolamento de novos recursos são trabalho imediato pós-Sprint 1, antes de qualquer escrita a partir da UI.
+- **RLS completo (leitura e escrita)** em todas as tabelas, com matriz de papéis
+  owner/admin/member — ver [`docs/security.md`](security.md).
+- Identidade sempre via `auth.uid()`; criação de organizações via RPC transacional.
+- Autenticação Supabase Auth com SSR (cookies httpOnly) — ver [`docs/authentication.md`](authentication.md).
 - A API de serviço (futura) valida a organização do utilizador em cada operação.
 
 ## Frontend (`apps/web`)

@@ -1,10 +1,10 @@
 /**
- * Tipos TypeScript derivados de supabase/migrations/0001_initial_schema.sql.
+ * Tipos TypeScript derivados de supabase/migrations/*.sql.
  *
  * NOTA: quando o Supabase estiver configurado, regenera estes tipos com:
  *   npx supabase gen types typescript --project-id <id> > packages/database/src/database.types.ts
  *
- * Mantidos manualmente até existir projeto Supabase ligado (Sprint 1).
+ * Mantidos manualmente até existir projeto Supabase ligado.
  * Formato alinhado com o gerador oficial do Supabase.
  */
 
@@ -45,13 +45,28 @@ export interface Database {
       };
       calls: {
         Row: Call;
-        Insert: Omit<Call, 'id' | 'createdAt'> & Partial<Pick<Call, 'id' | 'createdAt'>>;
+        Insert: Omit<Call, 'id' | 'createdAt' | 'updatedAt'> &
+          Partial<Pick<Call, 'id' | 'createdAt' | 'updatedAt'>>;
         Update: Partial<Call>;
         Relationships: [];
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      /** RPC transacional: cria organização + membership owner (auth.uid()). */
+      create_organization: {
+        Args: { p_name: string; p_slug: string };
+        Returns: string;
+      };
+      is_org_member: {
+        Args: { org_id: string };
+        Returns: boolean;
+      };
+      has_org_role: {
+        Args: { org_id: string; required: OrganizationRole[] };
+        Returns: boolean;
+      };
+    };
     Enums: {
       organization_role: OrganizationRole;
       agent_status: AgentStatus;

@@ -1,6 +1,9 @@
-import { CreditCard, LogOut, Settings, UserRound } from 'lucide-react';
+'use client';
+
+import { Building2, CreditCard, LogOut, Settings, UserRound } from 'lucide-react';
 import Link from 'next/link';
 
+import { signOutAction } from '@/lib/server/actions';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -8,16 +11,26 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-/**
- * Menu de utilizador — infraestrutura visual da Fase 02.
- * Os itens de sessão/perfil não estão ligados a autenticação real;
- * ao interagir, o utilizador é informado pela página de destino.
- */
-export function UserMenu() {
+export interface UserMenuProps {
+  /** Sessão real; `null` em modo demonstração. */
+  user?: { email: string; name?: string | null } | null;
+  organizationName?: string | null;
+  demoMode?: boolean;
+}
+
+/** Menu de utilizador — sessão real (logout) ou modo demo identificado. */
+export function UserMenu({ user = null, organizationName = null, demoMode = false }: UserMenuProps) {
+  const displayName = user?.name || user?.email || 'Utilizador Demo';
+  const initials = (user?.name || user?.email || 'D')
+    .split(/[\s@.]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? '')
+    .join('');
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -28,20 +41,30 @@ export function UserMenu() {
           aria-haspopup="menu"
         >
           <Avatar className="h-8 w-8">
-            <AvatarFallback>UD</AvatarFallback>
+            <AvatarFallback>{initials || 'D'}</AvatarFallback>
           </Avatar>
           <span className="hidden text-left leading-tight md:block">
-            <span className="block text-small font-medium">Utilizador Demo</span>
-            <span className="block text-caption text-muted">demo@orbita.chat</span>
+            <span className="block max-w-40 truncate text-small font-medium">{displayName}</span>
+            <span className="block text-caption text-muted">
+              {demoMode ? 'Modo demo' : (organizationName ?? 'Sem organização')}
+            </span>
           </span>
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-60">
         <DropdownMenuLabel>
-          <p className="text-small font-medium text-text">Utilizador Demo</p>
-          <p className="text-caption font-normal text-muted">demo@orbita.chat · Demo</p>
+          <p className="truncate text-small font-medium text-text">{displayName}</p>
+          <p className="truncate text-caption font-normal text-muted">
+            {demoMode ? 'Sessão não disponível (demo)' : (user?.email ?? '')}
+          </p>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link href="/settings">
+            <Building2 aria-hidden />
+            Organização
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link href="/settings">
             <UserRound aria-hidden />
@@ -52,7 +75,6 @@ export function UserMenu() {
           <Link href="/settings">
             <Settings aria-hidden />
             Definições
-            <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
@@ -62,12 +84,24 @@ export function UserMenu() {
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link href="/login">
-            <LogOut aria-hidden />
-            Terminar sessão
-          </Link>
-        </DropdownMenuItem>
+        {demoMode ? (
+          <DropdownMenuItem asChild>
+            <Link href="/login">
+              <LogOut aria-hidden />
+              Ir para o login
+            </Link>
+          </DropdownMenuItem>
+        ) : (
+          <form action={signOutAction}>
+            <button
+              type="submit"
+              className="flex w-full cursor-pointer select-none items-center gap-2.5 rounded-md px-2.5 py-2 text-small text-text transition-colors duration-fast ease-out hover:bg-soft-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+            >
+              <LogOut className="h-4 w-4 text-muted" aria-hidden />
+              Terminar sessão
+            </button>
+          </form>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

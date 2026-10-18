@@ -14,7 +14,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         {children}
       </div>
       <p className="mt-6 max-w-md text-center text-xs text-muted">
-        Protótipo do Sprint 1 — a autenticação será ligada ao Supabase Auth numa fase seguinte.
+        Autenticação segura com Supabase Auth — credenciais e tokens nunca são guardados na aplicação.
       </p>
     </div>
   );

@@ -17,19 +17,38 @@ import {
 } from '@/lib/navigation';
 import { cn } from '@/lib/utils';
 
+export interface ShellUser {
+  email: string;
+  name?: string | null;
+}
+
+export interface ShellOrganization {
+  id: string;
+  name: string;
+  slug: string;
+  role: string;
+}
+
 export interface AppShellProps {
   children: React.ReactNode;
+  /** Sessão real (Supabase). `null` em modo demonstração. */
+  user?: ShellUser | null;
+  /** Organização ativa validada no servidor. */
+  organization?: ShellOrganization | null;
+  /** Sem Supabase configurado: modo demo, sem sessão simulada. */
+  demoMode?: boolean;
 }
 
 /**
- * Shell definitivo do produto (Prompt 03).
+ * Shell definitivo do produto.
  *
  * - Sidebar persistente: colapso guardado em localStorage e restaurado;
  * - Breadcrumbs automáticos derivados do pathname + nav-config;
  * - Drawer mobile/tablet com overlay;
- * - Skip link (WCAG) e Container consistente.
+ * - Skip link (WCAG) e Container consistente;
+ * - Sessão/organização reais no topo (ou modo demo identificado).
  */
-export function AppShell({ children }: AppShellProps) {
+export function AppShell({ children, user = null, organization = null, demoMode = false }: AppShellProps) {
   const pathname = usePathname();
   const [drawerOpen, setDrawerOpen] = React.useState(false);
 
@@ -63,7 +82,13 @@ export function AppShell({ children }: AppShellProps) {
           collapsed ? 'w-20' : 'w-64',
         )}
       >
-        <AppSidebar collapsed={collapsed} onToggleCollapsed={toggleCollapsed} variant="desktop" />
+        <AppSidebar
+          collapsed={collapsed}
+          onToggleCollapsed={toggleCollapsed}
+          variant="desktop"
+          organization={organization}
+          demoMode={demoMode}
+        />
       </aside>
 
       {/* Drawer (mobile/tablet) */}
@@ -95,7 +120,12 @@ export function AppShell({ children }: AppShellProps) {
           >
             <X className="h-5 w-5" aria-hidden />
           </button>
-          <AppSidebar variant="drawer" onNavigate={() => setDrawerOpen(false)} />
+          <AppSidebar
+            variant="drawer"
+            onNavigate={() => setDrawerOpen(false)}
+            organization={organization}
+            demoMode={demoMode}
+          />
         </aside>
       </div>
 
@@ -108,6 +138,9 @@ export function AppShell({ children }: AppShellProps) {
         <Topbar
           onMenuClick={() => setDrawerOpen(true)}
           breadcrumbs={<Breadcrumbs items={crumbs} />}
+          user={user}
+          organization={organization}
+          demoMode={demoMode}
         />
 
         <main id="main-content" className="flex-1 py-8" tabIndex={-1}>
@@ -116,7 +149,10 @@ export function AppShell({ children }: AppShellProps) {
 
         <footer className="border-t border-border bg-surface">
           <Container className="flex flex-col gap-1 py-4 text-caption text-muted sm:flex-row sm:items-center sm:justify-between">
-            <p>ORBITA CHAT — protótipo. Nenhuma integração externa ativa.</p>
+            <p>
+              ORBITA CHAT — protótipo.
+              {demoMode ? ' Modo de demonstração (sem Supabase configurado).' : ' Nenhuma integração externa ativa.'}
+            </p>
             <p>
               Design system{' '}
               <a

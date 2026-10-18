@@ -54,7 +54,8 @@ export interface Agent {
   instructions: string;
   language: string;
   status: AgentStatus;
-  configuration: Record<string, unknown>;
+  /** Configuração de voz/operacional. NUNCA armazenar segredos de fornecedores. */
+  voiceConfig: Record<string, unknown>;
   createdBy: string | null;
   createdAt: string;
   updatedAt: string;
@@ -76,6 +77,7 @@ export interface Call {
   startedAt: string | null;
   endedAt: string | null;
   createdAt: string;
+  updatedAt: string;
 }
 
 /** Rótulos PT-PT para estados de agente (uso em UI). */
