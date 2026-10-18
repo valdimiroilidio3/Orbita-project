@@ -1,4 +1,5 @@
-import { Bot, Globe, MoreHorizontal, Pencil, PhoneCall } from 'lucide-react';
+import { Bot, Globe, Pencil, PhoneCall } from 'lucide-react';
+import Link from 'next/link';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -30,13 +31,6 @@ export function AgentCard({ agent }: AgentCardProps) {
             </p>
           </div>
         </div>
-        <button
-          type="button"
-          className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-muted transition-colors hover:bg-surface hover:text-text"
-          aria-label={`Mais ações para ${agent.name}`}
-        >
-          <MoreHorizontal className="h-4.5 w-4.5" aria-hidden />
-        </button>
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="line-clamp-2 min-h-10 text-sm text-muted">
@@ -45,20 +39,17 @@ export function AgentCard({ agent }: AgentCardProps) {
         <div className="flex items-center justify-between gap-3">
           <StatusBadge status={agent.status} kind="agent" />
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled
-              title="Edição disponível numa fase seguinte"
-            >
-              <Pencil className="h-3.5 w-3.5" aria-hidden />
-              Editar
+            <Button variant="outline" size="sm" asChild>
+              <Link href={`/agents/${agent.id}`}>
+                <Pencil className="h-3.5 w-3.5" aria-hidden />
+                {agent.isDemo ? 'Ver' : 'Editar'}
+              </Link>
             </Button>
             <Button
               variant="outline"
               size="sm"
               disabled
-              title="Chamadas reais chegam com o motor de voz"
+              title="Chamadas reais chegam com o motor de voz (fase futura)"
             >
               <PhoneCall className="h-3.5 w-3.5" aria-hidden />
               Ligar

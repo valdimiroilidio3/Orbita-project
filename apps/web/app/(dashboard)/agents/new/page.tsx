@@ -1,31 +1,47 @@
-import { Construction } from 'lucide-react';
-import Link from 'next/link';
+import { Info } from 'lucide-react';
 
-import { Button } from '@/components/ui/button';
-import { EmptyState } from '@/components/ui/empty-state';
+import { AgentForm } from '@/components/agents/agent-form';
+import { Card, CardContent } from '@/components/ui/card';
 import { PageHeader } from '@/components/ui/page-header';
+import { isSupabaseConfigured } from '@/lib/env';
+
+export const dynamic = 'force-dynamic';
 
 export const metadata = {
   title: 'Novo agente',
 };
 
+/** Criação de agente — Agent Studio. Validação e escrita no servidor (RLS). */
 export default function NewAgentPage() {
+  const configured = isSupabaseConfigured();
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Novo agente"
-        description="Fluxo de criação de agentes — planeado para uma fase seguinte."
+        description="Configura a identidade, as instruções e a voz do agente. O agente nasce em rascunho."
       />
-      <EmptyState
-        icon={Construction}
-        title="Criação de agentes em construção"
-        description="O design system e o dashboard estão prontos. O formulário de criação (instruções, idioma, voz e configuração) será implementado numa fase seguinte, com validação no servidor e políticas RLS de escrita."
-        action={
-          <Button variant="outline" asChild>
-            <Link href="/agents">Voltar aos agentes</Link>
-          </Button>
-        }
-      />
+
+      {!configured ? (
+        <p
+          role="status"
+          className="flex items-start gap-2 rounded-xl border border-accent/40 bg-soft-blue px-3.5 py-2.5 text-xs font-medium text-primary"
+        >
+          <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+          <span>
+            <strong>Supabase não configurado.</strong> O formulário está disponível para exploração,
+            mas a criação não é executada nem simulada — preenche{' '}
+            <code className="font-mono text-caption">apps/web/.env.local</code> para criar agentes
+            reais.
+          </span>
+        </p>
+      ) : null}
+
+      <Card>
+        <CardContent>
+          <AgentForm mode="create" disabled={!configured} />
+        </CardContent>
+      </Card>
     </div>
   );
 }

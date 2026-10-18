@@ -78,7 +78,7 @@ supabase db push          # aplica migrações
 psql "$DATABASE_URL" -f supabase/seed.sql   # opcional — dados de demonstração
 ```
 
-**Limites de segurança atuais:** as políticas RLS cobrem apenas leitura. Antes de permitir escrita a partir da UI/API é necessário adicionar políticas INSERT/UPDATE/DELETE por função, validação de owner/admin e criação segura de organizações. Ver [`docs/data-model.md`](docs/data-model.md).
+**Segurança:** as políticas RLS cobrem leitura e escrita em todas as tabelas, com matriz de papéis owner/admin/member e criação transacional de organizações. Ver [`docs/security.md`](docs/security.md).
 
 ## Qualidade e CI
 
@@ -96,7 +96,11 @@ psql "$DATABASE_URL" -f supabase/seed.sql   # opcional — dados de demonstraç�
 
 - [`docs/architecture.md`](docs/architecture.md) — arquitetura e decisões
 - [`docs/data-model.md`](docs/data-model.md) — modelo de dados
+- [`docs/security.md`](docs/security.md) — segurança multi-tenant e RLS (Fase 04)
+- [`docs/authentication.md`](docs/authentication.md) — autenticação Supabase (Fase 04)
+- [`docs/agent-studio.md`](docs/agent-studio.md) — Agent Studio e gestão de agentes (Fase 05)
 - [`docs/design-system.md`](docs/design-system.md) — design system (Fase 02)
+- [`docs/dashboard.md`](docs/dashboard.md) — dashboard e navegação (Fase 03)
 - [`docs/sprint-01.md`](docs/sprint-01.md) — briefing do sprint
 - [`docs/sprint-01-report.md`](docs/sprint-01-report.md) — relatório final do sprint
 

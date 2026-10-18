@@ -19,10 +19,35 @@ export const callDirectionSchema = z.enum(CALL_DIRECTIONS);
 export const callStatusSchema = z.enum(CALL_STATUSES);
 export const currencySchema = z.enum(SUPPORTED_CURRENCIES);
 
+/**
+ * Configuração de voz/operacional do agente.
+ *
+ * Apenas campos estruturados e NUNCA segredos de fornecedores: o schema é
+ * `strict` — qualquer chave não suportada (api keys, tokens, etc.) é rejeitada.
+ * Segredos de fornecedores pertencem a variáveis de ambiente do servidor.
+ */
+export const voiceConfigSchema = z.strictObject({
+  voiceId: z
+    .string()
+    .trim()
+    .max(64, 'Identificador de voz demasiado longo')
+    .optional(),
+  speed: z
+    .number()
+    .min(0.5, 'Velocidade entre 0.5 e 2')
+    .max(2, 'Velocidade entre 0.5 e 2')
+    .optional(),
+  pitch: z.number().min(-1, 'Tom entre -1 e 1').max(1, 'Tom entre -1 e 1').optional(),
+  greeting: z.string().trim().max(500, 'Saudação máxima de 500 caracteres').optional(),
+  style: z.string().trim().max(120, 'Estilo máximo de 120 caracteres').optional(),
+});
+
+export type VoiceConfigInput = z.infer<typeof voiceConfigSchema>;
+
 export const createAgentSchema = z.object({
   name: z.string().trim().min(1, 'Nome é obrigatório').max(120, 'Máximo de 120 caracteres'),
   description: z.string().trim().max(2000).nullish(),
-  instructions: z.string().max(20000).default(''),
+  instructions: z.string().max(20000, 'Instruções: máximo de 20 000 caracteres').default(''),
   language: z
     .string()
     .trim()
@@ -30,9 +55,17 @@ export const createAgentSchema = z.object({
     .max(16, 'Código de idioma inválido')
     .default('pt-PT'),
   status: agentStatusSchema.default('draft'),
+  voiceConfig: voiceConfigSchema.default({}),
 });
 
 export type CreateAgentInput = z.infer<typeof createAgentSchema>;
+
+/** Edição de agente — todos os campos opcionais; `id` obrigatório. */
+export const updateAgentSchema = createAgentSchema.partial().extend({
+  id: z.uuid('Identificador de agente inválido'),
+});
+
+export type UpdateAgentInput = z.infer<typeof updateAgentSchema>;
 
 export const organizationSlugSchema = z
   .string()

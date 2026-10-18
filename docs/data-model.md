@@ -44,8 +44,8 @@ Proteções (trigger `memberships_guard`): role não auto-atribuída; só owner 
 | `description` | text | nullable |
 | `instructions` | text | max 20 000 (CHECK) |
 | `language` | text | default `pt-PT` |
-| `status` | enum | `draft` \| `active` \| `paused` \| `archived` |
-| `voice_config` | jsonb | apenas objeto JSON; **nunca segredos de fornecedores** |
+| `status` | enum | `draft` \| `active` \| `paused` \| `archived` — transições validadas no servidor (`AGENT_STATUS_TRANSITIONS`) |
+| `voice_config` | jsonb | apenas campos estruturados (`voiceId`, `speed`, `pitch`, `greeting`, `style`) via `voiceConfigSchema` strict; **nunca segredos de fornecedores** |
 | `created_by` | uuid FK → auth.users | `on delete set null`; INSERT exige `= auth.uid()` |
 | `created_at` / `updated_at` | timestamptz | `updated_at` via trigger |
 

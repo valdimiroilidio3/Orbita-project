@@ -11,6 +11,26 @@ export type OrganizationRole = (typeof ORGANIZATION_ROLES)[number];
 export const AGENT_STATUSES = ['draft', 'active', 'paused', 'archived'] as const;
 export type AgentStatus = (typeof AGENT_STATUSES)[number];
 
+/**
+ * Transições de estado permitidas para agentes (máquina de estados do produto):
+ *   • draft → active | archived (publicar ou descartar rascunho);
+ *   • active ↔ paused (pausar/retomar);
+ *   • qualquer estado → archived (retirar do ar, sem perder histórico);
+ *   • archived → draft (restaurar como rascunho).
+ * Transições fora desta tabela (e no-ops) são rejeitadas no servidor.
+ */
+export const AGENT_STATUS_TRANSITIONS: Record<AgentStatus, readonly AgentStatus[]> = {
+  draft: ['active', 'archived'],
+  active: ['paused', 'archived'],
+  paused: ['active', 'archived'],
+  archived: ['draft'],
+};
+
+/** Determina se uma transição de estado de agente é válida. */
+export function canTransitionAgentStatus(from: AgentStatus, to: AgentStatus): boolean {
+  return AGENT_STATUS_TRANSITIONS[from].includes(to);
+}
+
 export const CALL_DIRECTIONS = ['inbound', 'outbound'] as const;
 export type CallDirection = (typeof CALL_DIRECTIONS)[number];
 
