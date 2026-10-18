@@ -1,0 +1,38 @@
+# Dependências
+node_modules/
+.pnpm-store/
+
+# Build
+.next/
+out/
+dist/
+build/
+.turbo/
+
+# Testes
+coverage/
+playwright-report/
+test-results/
+
+# Ambiente — nunca comitar credenciais
+.env
+.env.*
+!.env.example
+!**/.env.example
+
+# Supabase local
+supabase/.temp/
+supabase/.branches/
+
+# Sistema / editores
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
