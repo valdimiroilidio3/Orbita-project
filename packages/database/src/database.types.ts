@@ -13,6 +13,7 @@ import type {
   AgentStatus,
   Call,
   CallDirection,
+  CallEvent,
   CallStatus,
   Currency,
   Membership,
@@ -48,6 +49,13 @@ export interface Database {
         Insert: Omit<Call, 'id' | 'createdAt' | 'updatedAt'> &
           Partial<Pick<Call, 'id' | 'createdAt' | 'updatedAt'>>;
         Update: Partial<Call>;
+        Relationships: [];
+      };
+      /** Eventos de fornecedor — imutáveis; escrita apenas via servidor (service role). */
+      call_events: {
+        Row: CallEvent;
+        Insert: Omit<CallEvent, 'id' | 'processedAt'> & Partial<Pick<CallEvent, 'id' | 'processedAt'>>;
+        Update: never;
         Relationships: [];
       };
     };

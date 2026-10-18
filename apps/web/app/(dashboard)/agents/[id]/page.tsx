@@ -7,6 +7,10 @@ import { agentPermissions, agentStatusLabel } from '@/lib/agents';
 import { AgentDeleteButton } from '@/components/agents/agent-delete-button';
 import { AgentForm } from '@/components/agents/agent-form';
 import { AgentStatusActions } from '@/components/agents/agent-status-actions';
+import { AgentVoicePanel } from '@/components/agents/agent-voice-panel';
+import { deriveVoiceDiagnostics } from '@/lib/voice/diagnostics';
+import { readVoiceEnv } from '@/lib/voice/env';
+import { isVoiceIntegrationImplemented } from '@/lib/voice/adapters';
 import { DemoBanner } from '@/components/dashboard/demo-banner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PageHeader } from '@/components/ui/page-header';
@@ -130,6 +134,18 @@ export default async function AgentDetailPage({
   const organization = await getActiveOrganization();
   const permissions = agentPermissions(organization?.role ?? null);
 
+  const envFacts = readVoiceEnv();
+  const voiceTelephonyState = (() => {
+    const d = deriveVoiceDiagnostics({
+      envPresent: envFacts.envPresent,
+      envValid: envFacts.envValid,
+      integrationImplemented: isVoiceIntegrationImplemented(),
+      providerCheck: null,
+      hasVerifiedRealCall: false,
+    });
+    return { label: d.label, detail: d.detail };
+  })();
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -145,6 +161,18 @@ export default async function AgentDetailPage({
 
       <NoticeBanner notice={notice} />
 
+      <AgentVoicePanel
+        agent={{
+          name: agent.name,
+          language: agent.language,
+          instructions: agent.instructions,
+          status: agent.status,
+          voiceConfig: agent.voiceConfig,
+          inboundPhoneNumber: agent.inboundPhoneNumber,
+        }}
+        telephonyState={voiceTelephonyState}
+      />
+
       <Card>
         <CardHeader>
           <CardTitle>Editar agente</CardTitle>
@@ -159,6 +187,7 @@ export default async function AgentDetailPage({
               instructions: agent.instructions,
               language: agent.language,
               voiceConfig: agent.voiceConfig,
+              inboundPhoneNumber: agent.inboundPhoneNumber,
             }}
           />
         </CardContent>

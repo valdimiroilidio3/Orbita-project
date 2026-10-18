@@ -99,6 +99,7 @@ export async function createAgentAction(
     instructions: formData.get('instructions') ?? '',
     language: formData.get('language') ?? undefined,
     voiceConfig: voice.value,
+    inboundPhoneNumber: emptyToUndefined(formData.get('inboundPhoneNumber')) ?? null,
   });
   if (!parsed.success) return { error: zodIssues(parsed.error), success: null };
 
@@ -114,6 +115,7 @@ export async function createAgentAction(
       language: parsed.data.language,
       status: parsed.data.status,
       voice_config: parsed.data.voiceConfig,
+      inbound_phone_number: parsed.data.inboundPhoneNumber ?? null,
     })
     .select('id')
     .single();
@@ -145,6 +147,7 @@ export async function updateAgentAction(
     instructions: formData.get('instructions') ?? '',
     language: formData.get('language') ?? undefined,
     voiceConfig: voice.value,
+    inboundPhoneNumber: emptyToUndefined(formData.get('inboundPhoneNumber')) ?? null,
   });
   if (!parsed.success) return { error: zodIssues(parsed.error), success: null };
 
@@ -157,6 +160,7 @@ export async function updateAgentAction(
       instructions: parsed.data.instructions,
       language: parsed.data.language,
       voice_config: parsed.data.voiceConfig,
+      inbound_phone_number: parsed.data.inboundPhoneNumber ?? null,
     })
     .eq('id', parsed.data.id)
     .eq('organization_id', organization.id);

@@ -22,6 +22,7 @@ export interface AgentRecord {
   language: string;
   status: AgentStatus;
   voiceConfig: VoiceConfigInput;
+  inboundPhoneNumber: string | null;
   createdBy: string | null;
   createdAt: string;
   updatedAt: string;
@@ -42,7 +43,7 @@ export interface ListAgentsResult {
 export const AGENTS_PAGE_SIZE = 50;
 
 const AGENT_COLUMNS =
-  'id, name, description, instructions, language, status, voice_config, created_by, created_at, updated_at';
+  'id, name, description, instructions, language, status, voice_config, inbound_phone_number, created_by, created_at, updated_at';
 
 interface AgentRow {
   id: string;
@@ -52,6 +53,7 @@ interface AgentRow {
   language: string | null;
   status: AgentStatus | null;
   voice_config: Record<string, unknown> | null;
+  inbound_phone_number: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;
@@ -66,6 +68,7 @@ function mapAgentRow(row: AgentRow): AgentRecord {
     language: row.language ?? 'pt-PT',
     status: (row.status ?? 'draft') as AgentStatus,
     voiceConfig: (row.voice_config ?? {}) as VoiceConfigInput,
+    inboundPhoneNumber: row.inbound_phone_number,
     createdBy: row.created_by,
     createdAt: row.created_at,
     updatedAt: row.updated_at,

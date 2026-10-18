@@ -155,9 +155,36 @@ export default async function CallDetailPage({
             <DetailRow label="Fornecedor" value={call.provider ?? '—'} />
             <DetailRow label="ID do fornecedor" value={<span className="font-mono text-caption">{call.providerCallId ?? '—'}</span>} />
             <DetailRow label="Início" value={formatDateTime(call.startedAt)} />
+            <DetailRow label="Atendimento" value={formatDateTime(call.answeredAt)} />
             <DetailRow label="Fim" value={formatDateTime(call.endedAt)} />
             <DetailRow label="Duração" value={formatDuration(call.durationSeconds)} />
             <DetailRow label="Custo estimado" value={formatCurrency(call.estimatedCost, call.currency)} />
+            <DetailRow
+              label="Sessão de voz"
+              value={
+                call.voiceSessionId ? (
+                  <span className="inline-flex items-center gap-2">
+                    <span className="font-mono text-caption">{call.voiceSessionId}</span>
+                    {call.status === 'in_progress' ? (
+                      <Badge variant="info">Sessão em curso</Badge>
+                    ) : null}
+                  </span>
+                ) : (
+                  '—'
+                )
+              }
+            />
+            {call.failureCode || call.failureReason ? (
+              <DetailRow
+                label="Falha"
+                value={
+                  <span className="text-danger-text">
+                    {call.failureCode ?? '—'}
+                    {call.failureReason ? ` · ${call.failureReason}` : ''}
+                  </span>
+                }
+              />
+            ) : null}
           </dl>
           {isSimulatedProvider(call.provider) ? (
             <p className="mt-3 text-caption text-muted">

@@ -120,6 +120,8 @@ export interface Agent {
   status: AgentStatus;
   /** Configuração de voz/operacional. NUNCA armazenar segredos de fornecedores. */
   voiceConfig: Record<string, unknown>;
+  /** Número de entrada associado (resolução de chamadas recebidas). */
+  inboundPhoneNumber: string | null;
   createdBy: string | null;
   createdAt: string;
   updatedAt: string;
@@ -135,11 +137,18 @@ export interface Call {
   status: CallStatus;
   fromNumber: string | null;
   toNumber: string | null;
+  /** ID da sessão de voz em tempo real, quando aplicável. */
+  voiceSessionId: string | null;
   durationSeconds: number | null;
   estimatedCost: number | null;
   currency: Currency;
   startedAt: string | null;
+  /** Momento do atendimento, quando conhecido. */
+  answeredAt: string | null;
   endedAt: string | null;
+  /** Código e razão de falha sanitizados (sem segredos/payloads). */
+  failureCode: string | null;
+  failureReason: string | null;
   createdAt: string;
   updatedAt: string;
 }

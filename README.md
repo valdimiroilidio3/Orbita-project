@@ -100,6 +100,10 @@ psql "$DATABASE_URL" -f supabase/seed.sql   # opcional — dados de demonstraç�
 - [`docs/authentication.md`](docs/authentication.md) — autenticação Supabase (Fase 04)
 - [`docs/agent-studio.md`](docs/agent-studio.md) — Agent Studio e gestão de agentes (Fase 05)
 - [`docs/call-engine.md`](docs/call-engine.md) — motor de chamadas e ciclo de vida (Prompt 06)
+- [`docs/voice-architecture.md`](docs/voice-architecture.md) — motor de voz IA: arquitetura e decisão técnica (Prompt 07)
+- [`docs/voice-setup.md`](docs/voice-setup.md) — configuração do motor de voz
+- [`docs/voice-security.md`](docs/voice-security.md) — segurança e privacidade do motor de voz
+- [`docs/voice-testing.md`](docs/voice-testing.md) — testes do motor de voz
 - [`docs/design-system.md`](docs/design-system.md) — design system (Fase 02)
 - [`docs/dashboard.md`](docs/dashboard.md) — dashboard e navegação (Fase 03)
 - [`docs/sprint-01.md`](docs/sprint-01.md) — briefing do sprint

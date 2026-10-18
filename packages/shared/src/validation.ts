@@ -44,6 +44,18 @@ export const voiceConfigSchema = z.strictObject({
 
 export type VoiceConfigInput = z.infer<typeof voiceConfigSchema>;
 
+/**
+ * Número de telefone em formato internacional simples (`+` e dígitos,
+ * espaços/parênteses/hífens permitidos). A telefonia real validará o E.164
+ * no fornecedor — aqui evitam-se entradas obviamente inválidas.
+ */
+export const phoneNumberSchema = z
+  .string()
+  .trim()
+  .min(5, 'Número de telefone demasiado curto')
+  .max(32, 'Número de telefone demasiado longo')
+  .regex(/^\+?[0-9][0-9\s()-]*$/, 'Número de telefone inválido');
+
 export const createAgentSchema = z.object({
   name: z.string().trim().min(1, 'Nome é obrigatório').max(120, 'Máximo de 120 caracteres'),
   description: z.string().trim().max(2000).nullish(),
@@ -56,6 +68,8 @@ export const createAgentSchema = z.object({
     .default('pt-PT'),
   status: agentStatusSchema.default('draft'),
   voiceConfig: voiceConfigSchema.default({}),
+  /** Número de entrada (telefonia) — opcional; único por organização na BD. */
+  inboundPhoneNumber: phoneNumberSchema.nullish(),
 });
 
 export type CreateAgentInput = z.infer<typeof createAgentSchema>;
@@ -92,18 +106,6 @@ export const callQuerySchema = z.object({
 });
 
 export type CallQuery = z.infer<typeof callQuerySchema>;
-
-/**
- * Número de telefone em formato internacional simples (`+` e dígitos,
- * espaços/parênteses/hífens permitidos). A telefonia real validará o E.164
- * no fornecedor — aqui evitam-se entradas obviamente inválidas.
- */
-export const phoneNumberSchema = z
-  .string()
-  .trim()
-  .min(5, 'Número de telefone demasiado curto')
-  .max(32, 'Número de telefone demasiado longo')
-  .regex(/^\+?[0-9][0-9\s()-]*$/, 'Número de telefone inválido');
 
 /** Início de chamada (validação de cliente; o servidor revalida). */
 export const startCallSchema = z.object({

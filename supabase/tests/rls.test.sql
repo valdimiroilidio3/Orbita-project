@@ -56,7 +56,7 @@ begin
 end;
 $$;
 
-select plan(14);
+select plan(17);
 
 -- ============================================================
 -- 1. Criação de organização atribui owner corretamente (fluxo transacional)
@@ -287,6 +287,87 @@ begin
   delete from public.agents;
   select count(*) into after_count from public.agents;
   perform is(after_count, before_count, '14. member não apaga agentes');
+end;
+$$;
+
+-- ============================================================
+-- 15–17. call_events: isolamento multi-tenant e escrita protegida
+-- (ingestão de webhooks acontece no servidor — sem escrita por cliente)
+-- ============================================================
+select pg_temp.as_postgres();
+insert into public.calls (organization_id, agent_id, direction, status, provider, provider_call_id, started_at)
+values (
+  (select id from public.organizations where slug = 'org-alfa'),
+  (select id from public.agents where name = 'agente alfa' limit 1),
+  'inbound',
+  'queued',
+  'teste',
+  'call-rls-1',
+  now()
+);
+insert into public.call_events (organization_id, call_id, provider, provider_event_id, event_type, occurred_at)
+values (
+  (select id from public.organizations where slug = 'org-alfa'),
+  (select id from public.calls where provider_call_id = 'call-rls-1'),
+  'teste',
+  'evt-rls-1',
+  'call.received',
+  now()
+);
+
+select pg_temp.as_user('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb');
+do $$
+declare
+  visible integer;
+begin
+  select count(*) into visible from public.call_events;
+  perform is(visible, 1, '15. membro vê apenas eventos da própria organização');
+end;
+$$;
+
+do $$
+declare
+  before_count integer;
+  after_count integer;
+begin
+  select count(*) into before_count from public.call_events;
+  begin
+    insert into public.call_events (organization_id, call_id, provider, provider_event_id, event_type, occurred_at)
+    values (
+      (select id from public.organizations where slug = 'org-alfa'),
+      (select id from public.calls where provider_call_id = 'call-rls-1'),
+      'teste',
+      'evt-indevido',
+      'call.ended',
+      now()
+    );
+  exception when insufficient_privilege or check_violation or others then
+    null;
+  end;
+  select count(*) into after_count from public.call_events;
+  perform is(after_count, before_count, '16. cliente autenticado não escreve call_events (denegação por omissão)');
+end;
+$$;
+
+select pg_temp.as_postgres();
+do $$
+declare
+  duplicated boolean := false;
+begin
+  begin
+    insert into public.call_events (organization_id, call_id, provider, provider_event_id, event_type, occurred_at)
+    values (
+      (select id from public.organizations where slug = 'org-alfa'),
+      (select id from public.calls where provider_call_id = 'call-rls-1'),
+      'teste',
+      'evt-rls-1',
+      'call.received',
+      now()
+    );
+  exception when unique_violation then
+    duplicated := true;
+  end;
+  perform ok(duplicated, '17. evento duplicado (provider, provider_event_id) bloqueado');
 end;
 $$;
 

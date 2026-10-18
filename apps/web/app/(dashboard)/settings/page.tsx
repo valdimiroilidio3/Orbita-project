@@ -4,6 +4,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
+import { VoiceDiagnosticsPanel } from '@/components/voice/voice-diagnostics';
 import { isSupabaseConfigured } from '@/lib/env';
 
 export const metadata = {
@@ -48,6 +49,8 @@ export default function SettingsPage() {
           </div>
         </CardContent>
       </Card>
+
+      <VoiceDiagnosticsPanel />
 
       <EmptyState
         icon={Settings}

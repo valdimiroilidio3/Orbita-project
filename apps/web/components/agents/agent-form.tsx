@@ -27,6 +27,7 @@ export interface AgentFormValues {
   instructions: string;
   language: string;
   voiceConfig: VoiceConfigInput;
+  inboundPhoneNumber: string | null;
 }
 
 export type AgentFormProps =
@@ -211,6 +212,24 @@ export function AgentForm(props: AgentFormProps) {
               maxLength={500}
               placeholder="Bem-vindo à Clínica X, em que posso ajudar?"
               aria-describedby={describedBy}
+            />
+          )}
+        </FormField>
+
+        <FormField
+          label="Número de entrada (telefonia)"
+          hint="Opcional — número que encaminha chamadas recebidas para este agente (único na organização)."
+        >
+          {({ id, describedBy, invalid }) => (
+            <Input
+              id={id}
+              name="inboundPhoneNumber"
+              type="tel"
+              defaultValue={initial?.inboundPhoneNumber ?? ''}
+              maxLength={32}
+              placeholder="+351 210 000 001"
+              aria-describedby={describedBy}
+              aria-invalid={invalid || undefined}
             />
           )}
         </FormField>

@@ -87,7 +87,21 @@ organizações exclusivamente via RPC transacional `create_organization`.
 
 ## Extensibilidade (fases futuras)
 
-`contacts`, `automations`, `integrations`, `usage_records`, `subscriptions` —
+`automations`, `integrations`, `usage_records`, `subscriptions` —
 previstas, **não criadas** nesta fase (evitar tabelas desnecessárias). Novas
 entidades seguem o mesmo padrão: `organization_id` obrigatório, RLS por
 membership, `updated_at` por trigger.
+
+## Motor de voz (Prompt 07 — migração `0004_voice_engine.sql`)
+
+- `calls` ganhou `voice_session_id`, `answered_at`, `failure_code`,
+  `failure_reason` (CHECKs de coerência temporal; `failure_reason ≤ 500`).
+- `agents` ganhou `inbound_phone_number` (único; resolve chamadas recebidas
+  por associação persistida — nunca por identificadores do fornecedor).
+- `call_events`: eventos de fornecedor imutáveis; deduplicação por
+  `unique (provider, provider_event_id)`; FK composta
+  `(organization_id, call_id)` impede eventos cross-tenant; metadados ≤ 2 KB
+  (sem áudio nem transcrições); RLS: leitura para membros, **sem escrita
+  por cliente** (ingestão no servidor — docs/voice-security.md).
+- ⚠️ Migração criada no repositório; **não aplicada** a nenhuma instância
+  Supabase neste ambiente.

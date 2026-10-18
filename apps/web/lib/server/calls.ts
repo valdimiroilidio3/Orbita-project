@@ -24,11 +24,15 @@ export interface CallDetailRecord {
   agentName: string | null;
   provider: string | null;
   providerCallId: string | null;
+  voiceSessionId: string | null;
   durationSeconds: number | null;
   estimatedCost: number | null;
   currency: string;
   startedAt: string | null;
+  answeredAt: string | null;
   endedAt: string | null;
+  failureCode: string | null;
+  failureReason: string | null;
   createdAt: string;
 }
 
@@ -48,7 +52,7 @@ export interface ListCallsResult {
 export const CALLS_PAGE_SIZE = 50;
 
 const CALL_COLUMNS =
-  'id, direction, status, to_number, from_number, agent_id, agent:agents(name), duration_seconds, estimated_cost, currency, provider, provider_call_id, started_at, ended_at, created_at';
+  'id, direction, status, to_number, from_number, agent_id, agent:agents(name), voice_session_id, duration_seconds, estimated_cost, currency, provider, provider_call_id, started_at, answered_at, ended_at, failure_code, failure_reason, created_at';
 
 interface CallRow {
   id: string;
@@ -58,6 +62,7 @@ interface CallRow {
   from_number: string | null;
   agent_id: string | null;
   agent: { name: string } | { name: string }[] | null;
+  voice_session_id: string | null;
   duration_seconds: number | null;
   // numeric chega do Supabase como string — normalizar com Number().
   estimated_cost: string | number | null;
@@ -65,7 +70,10 @@ interface CallRow {
   provider: string | null;
   provider_call_id: string | null;
   started_at: string | null;
+  answered_at: string | null;
   ended_at: string | null;
+  failure_code: string | null;
+  failure_reason: string | null;
   created_at: string;
 }
 
@@ -81,11 +89,15 @@ function mapCallRow(row: CallRow): CallDetailRecord {
     agentName: agent?.name ?? null,
     provider: row.provider,
     providerCallId: row.provider_call_id,
+    voiceSessionId: row.voice_session_id,
     durationSeconds: row.duration_seconds,
     estimatedCost: row.estimated_cost === null ? null : Number(row.estimated_cost),
     currency: row.currency ?? 'EUR',
     startedAt: row.started_at,
+    answeredAt: row.answered_at,
     endedAt: row.ended_at,
+    failureCode: row.failure_code,
+    failureReason: row.failure_reason,
     createdAt: row.created_at,
   };
 }

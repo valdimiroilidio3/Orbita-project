@@ -45,6 +45,7 @@ Todas `to authenticated`. **Sem política = operação negada.**
 | `memberships` | membro | **negado** (só RPC) | owner/admin (+ triggers) | própria saída ou owner/admin (+ trigger do último owner) |
 | `agents` | membro | membro (`created_by = auth.uid()`) | membro (+ trigger anti-transferência) | owner/admin |
 | `calls` | membro | membro | membro (+ trigger anti-transferência e transições) | **negado** (retenção) |
+| `call_events` | membro | **negado** (ingestão no servidor — service role) | **negado** | **negado** |
 
 ### Helpers `SECURITY DEFINER`
 
