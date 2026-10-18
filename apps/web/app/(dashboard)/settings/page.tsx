@@ -1,117 +1,140 @@
-import { Settings } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
+import Link from 'next/link';
 
-import { PageHeader } from '@/components/ui/page-header';
+import { INTEGRATION_STATE_LABELS } from '@/lib/integrations/status';
+import { ROLE_LABELS, formatDateTime } from '@orbita/shared';
+
+import { SETTINGS_NAV } from '@/components/settings/settings-nav';
+import { SettingRow, SettingsSection, Unavailable } from '@/components/settings/settings-section';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { EmptyState } from '@/components/ui/empty-state';
-import {
-  BusinessProfileForm,
-  type BusinessProfileValues,
-} from '@/components/tools/business-profile-form';
-import { VoiceDiagnosticsPanel } from '@/components/voice/voice-diagnostics';
 import { isSupabaseConfigured } from '@/lib/env';
-import { getBusinessProfile } from '@/lib/server/tools';
+import { getProfile, getSettingsOverview } from '@/lib/server/settings';
 
-export const dynamic = 'force-dynamic';
+export const metadata = { title: 'Definições' };
 
-export const metadata = {
-  title: 'Definições',
-};
+const QUICK_ACCESS = new Set([
+  '/settings/profile',
+  '/settings/organization',
+  '/settings/members',
+  '/settings/security',
+  '/settings/notifications',
+  '/settings/integrations',
+]);
 
-const EMPTY_PROFILE: BusinessProfileValues = {
-  displayName: '',
-  timezone: 'Europe/Lisbon',
-  address: '',
-  phone: '',
-  email: '',
-  prices: '',
-  faq: '',
-  policies: '',
-  hoursText: '',
-  servicesText: '',
-};
+export default async function SettingsOverviewPage() {
+  const configured = isSupabaseConfigured();
+  const [overview, profile] = await Promise.all([getSettingsOverview(), getProfile()]);
 
-export default async function SettingsPage() {
-  const supabaseConfigured = isSupabaseConfigured();
-  const stored = supabaseConfigured ? await getBusinessProfile() : null;
-
-  const profile: BusinessProfileValues = stored
-    ? {
-        displayName: stored.display_name ?? '',
-        timezone: stored.timezone ?? 'Europe/Lisbon',
-        address: stored.address ?? '',
-        phone: stored.phone ?? '',
-        email: stored.email ?? '',
-        prices: stored.prices ?? '',
-        faq: stored.faq ?? '',
-        policies: stored.policies ?? '',
-        hoursText: stored.hours_text ?? '',
-        servicesText: stored.services_text ?? '',
-      }
-    : EMPTY_PROFILE;
+  const integrationsAvailable = overview.integrations.filter((i) => i.state === 'available').length;
+  const integrationsTotal = overview.integrations.length;
+  const latestUpdate = [overview.organizationSettingsUpdatedAt, overview.preferencesUpdatedAt]
+    .filter((v): v is string => Boolean(v))
+    .sort()
+    .at(-1);
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Definições"
-        description="Configuração do workspace, equipa e preferências."
+    <>
+      {!configured ? (
+        <div className="rounded-xl border border-warning/40 bg-warning-soft px-4 py-3 text-caption text-warning-text">
+          Supabase não configurado — as definições são apresentadas sem dados de conta e não podem
+          ser guardadas.
+        </div>
+      ) : null}
+
+      <SettingsSection
+        title="Visão geral"
+        description="Indicadores derivados de dados reais. Sem dados, mostramos «Indisponível»."
+        badge={
+          overview.organization ? (
+            <Badge variant="outline">{ROLE_LABELS[overview.organization.role]}</Badge>
+          ) : null
+        }
       >
-        <Badge variant="outline">Parcialmente disponível</Badge>
-      </PageHeader>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Workspace</CardTitle>
-          <CardDescription>Dados de demonstração do workspace atual.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3 text-sm">
-          <div className="flex items-center justify-between rounded-xl border border-border bg-surface px-3.5 py-3">
-            <span className="font-medium">Nome do workspace</span>
-            <span className="flex items-center gap-2 text-muted">
-              ORBITA Demo <Badge variant="accent">Demo</Badge>
-            </span>
-          </div>
-          <div className="flex items-center justify-between rounded-xl border border-border bg-surface px-3.5 py-3">
-            <span className="font-medium">Supabase</span>
-            {supabaseConfigured ? (
-              <Badge variant="success">Configurado</Badge>
+        <SettingRow
+          label="Organização"
+          value={overview.organization ? overview.organization.name : <Unavailable />}
+        />
+        <SettingRow label="Plano" value={<Unavailable label="Faturação não configurada" />} />
+        <SettingRow
+          label="Membros"
+          value={overview.memberCount === null ? <Unavailable /> : overview.memberCount}
+        />
+        <SettingRow
+          label="Agentes"
+          value={
+            overview.agentCount === null ? (
+              <Unavailable />
             ) : (
-              <Badge variant="warning">Não configurado</Badge>
-            )}
-          </div>
-          <div className="flex items-center justify-between rounded-xl border border-border bg-surface px-3.5 py-3">
-            <span className="font-medium">Membros e permissões</span>
-            <Badge variant="neutral">Planeado</Badge>
-          </div>
-        </CardContent>
-      </Card>
+              <span>
+                {overview.agentCount} configurados
+                {overview.activeAgentCount !== null ? ` · ${overview.activeAgentCount} ativos` : ''}
+              </span>
+            )
+          }
+        />
+        <SettingRow
+          label="Integrações"
+          value={
+            <span className="inline-flex flex-wrap items-center gap-1.5">
+              <Badge variant={integrationsAvailable > 0 ? 'success' : 'neutral'}>
+                {integrationsAvailable}/{integrationsTotal} disponíveis
+              </Badge>
+            </span>
+          }
+          hint={overview.integrations
+            .map((i) => `${i.name}: ${INTEGRATION_STATE_LABELS[i.state]}`)
+            .join(' · ')}
+        />
+        <SettingRow
+          label="Segurança da conta"
+          value={
+            overview.emailVerified === null ? (
+              <Unavailable />
+            ) : overview.emailVerified ? (
+              <Badge variant="success">Email verificado</Badge>
+            ) : (
+              <Badge variant="warning">Email por verificar</Badge>
+            )
+          }
+          hint={
+            profile?.provider ? `Autenticação: ${profile.provider} · MFA não disponível` : undefined
+          }
+        />
+        <SettingRow
+          label="Última atualização das definições"
+          value={latestUpdate ? formatDateTime(latestUpdate) : <Unavailable label="Sem registo" />}
+        />
+      </SettingsSection>
 
-      <VoiceDiagnosticsPanel />
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Perfil público da empresa</CardTitle>
-          <CardDescription>
-            Dados autorizados consultados pelas ferramentas do agente (informação, disponibilidade e
-            marcações). Apenas owners e admins podem editar.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {supabaseConfigured ? (
-            <BusinessProfileForm values={profile} />
-          ) : (
-            <p className="text-caption text-muted">
-              Supabase não configurado — perfil indisponível.
-            </p>
-          )}
-        </CardContent>
-      </Card>
-
-      <EmptyState
-        icon={Settings}
-        title="Mais definições em breve"
-        description="Gestão de membros, papéis (owner/admin/member), faturação e preferências de notificação serão adicionadas quando a autenticação e o backend estiverem ligados."
-      />
-    </div>
+      <SettingsSection title="Acesso rápido" description="Secções mais usadas.">
+        <ul className="grid gap-2 sm:grid-cols-2">
+          {SETTINGS_NAV.filter((item) => QUICK_ACCESS.has(item.href)).map((item) => {
+            const Icon = item.icon;
+            return (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className="group flex items-center gap-3 rounded-xl border border-border bg-white px-3.5 py-3 transition-colors duration-fast hover:bg-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                >
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-soft-blue text-primary">
+                    <Icon className="h-4 w-4" aria-hidden />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-small font-medium text-text">{item.label}</span>
+                    <span className="block truncate text-caption text-muted">
+                      {item.description}
+                    </span>
+                  </span>
+                  <ArrowRight
+                    className="h-4 w-4 text-muted transition-transform duration-fast group-hover:translate-x-0.5"
+                    aria-hidden
+                  />
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </SettingsSection>
+    </>
   );
 }

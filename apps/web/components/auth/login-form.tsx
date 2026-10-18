@@ -10,7 +10,15 @@ import { Button } from '@/components/ui/button';
 import { FormField } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 
-export function LoginForm({ next, justRegistered }: { next?: string; justRegistered: boolean }) {
+export function LoginForm({
+  next,
+  justRegistered,
+  notice = null,
+}: {
+  next?: string;
+  justRegistered: boolean;
+  notice?: string | null;
+}) {
   const [state, formAction, pending] = useActionState(signInAction, INITIAL_AUTH_STATE);
 
   return (
@@ -19,6 +27,16 @@ export function LoginForm({ next, justRegistered }: { next?: string; justRegiste
         <h1 className="text-h1">Iniciar sessão</h1>
         <p className="mt-1 text-small text-muted">Acede ao teu workspace ORBITA CHAT.</p>
       </div>
+
+      {notice ? (
+        <p
+          role="status"
+          className="flex items-start gap-2 rounded-lg border border-border bg-surface px-3.5 py-2.5 text-caption text-text"
+        >
+          <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+          {notice}
+        </p>
+      ) : null}
 
       {justRegistered ? (
         <p className="flex items-start gap-2 rounded-lg border border-success/40 bg-success-soft px-3.5 py-2.5 text-caption text-success-text">

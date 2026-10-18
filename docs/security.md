@@ -132,7 +132,17 @@ Definidos em `apps/web/next.config.ts` e verificados no build de produção:
   `Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()`, `X-DNS-Prefetch-Control: off`.
 - `ALLOW_FRAME_EMBEDDING=true` (build-time) relaxa apenas o framing, para previews embebidos — nunca em produção.
 
-## 8. Privacidade de números e logs
+## 8. Definições e funções SECURITY DEFINER
+
+- Funções `SECURITY DEFINER`: `is_org_member`, `has_org_role`, `create_organization` (0003) e `list_organization_members` (0006).
+  Esta última existe porque `auth.users` não é acessível por RLS; devolve apenas user_id/email/nome/papel/data e **apenas**
+  a membros da organização pedida (`is_org_member` no WHERE); `search_path` vazio; EXECUTE só para `authenticated`.
+- Server actions de definições verificam papel no servidor (`owner`/`admin` para organização, voz e notificações da
+  organização) e repetem as regras de `memberships_guard` antes de escrever; a trigger continua a ser a barreira final.
+- Remoção de membros exige confirmação textual; alteração de email passa pela confirmação do Supabase; alteração de
+  palavra-passe usa `auth.updateUser` sob sessão; «terminar todas as sessões» usa `signOut({ scope: 'global' })`.
+
+## 9. Privacidade de números e logs
 
 - Listas de chamadas mostram números mascarados (`maskPhoneNumber`); o número completo só no detalhe da chamada
   (acesso já autorizado pela organização).

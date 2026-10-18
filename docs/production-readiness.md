@@ -12,7 +12,7 @@ mas a camada de dados (RLS/migrações) e a autenticação **nunca foram exercit
 
 ### Críticos por resolver (bloqueiam go-live)
 
-1. Aplicar migrações 0001–0005 em staging e executar `rls.test.sql` — **BLOQUEADO** aqui.
+1. Aplicar migrações 0001–0006 em staging e executar `rls.test.sql` — **BLOQUEADO** aqui.
 2. Teste manual IDOR/authz com duas organizações reais — **NÃO VERIFICADO**.
 3. Fluxo de autenticação ponta a ponta com Supabase Auth real — **NÃO VERIFICADO**.
 
@@ -32,17 +32,18 @@ mas a camada de dados (RLS/migrações) e a autenticação **nunca foram exercit
 
 ## 2. Funcionalidade
 
-| Módulo       | Estado           | Notas                                                                                                 |
-| ------------ | ---------------- | ----------------------------------------------------------------------------------------------------- |
-| Dashboard    | PASSOU           | Agregações reais (`buildLiveOverview`); demo rotulado com `DemoBanner`.                               |
-| Agent Studio | PASSOU           | CRUD + duplicar (novo) + pausar/arquivar; Zod no servidor.                                            |
-| Calls Center | PASSOU           | Filtros/pesquisa/paginação **server-side** (novo); números mascarados na lista, completos no detalhe. |
-| Voz          | PASSOU (honesto) | Estados reais; nenhuma chamada real; «verificada» só com evidência.                                   |
-| Ferramentas  | PASSOU           | Allowlist, risco mínimo, aprovações, idempotência.                                                    |
-| Integrações  | PASSOU           | Página reflete `buildIntegrationStatuses` (4 estados) — sem simular «ativo».                          |
-| Contactos    | PASSOU           | Pedidos + marcações reais; transição de estado open→contacted→closed (novo).                          |
-| Billing      | PASSOU (honesto) | Página informativa; **não implementado**, sem pagamentos simulados.                                   |
-| Analytics    | PASSOU (honesto) | Agregações reais 30 dias; métricas de áudio marcadas «não medidas».                                   |
+| Módulo       | Estado           | Notas                                                                                                                                       |
+| ------------ | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Dashboard    | PASSOU           | Agregações reais (`buildLiveOverview`); demo rotulado com `DemoBanner`.                                                                     |
+| Agent Studio | PASSOU           | CRUD + duplicar (novo) + pausar/arquivar; Zod no servidor.                                                                                  |
+| Calls Center | PASSOU           | Filtros/pesquisa/paginação **server-side** (novo); números mascarados na lista, completos no detalhe.                                       |
+| Voz          | PASSOU (honesto) | Estados reais; nenhuma chamada real; «verificada» só com evidência.                                                                         |
+| Ferramentas  | PASSOU           | Allowlist, risco mínimo, aprovações, idempotência.                                                                                          |
+| Integrações  | PASSOU           | Página reflete `buildIntegrationStatuses` (4 estados) — sem simular «ativo».                                                                |
+| Contactos    | PASSOU           | Pedidos + marcações reais; transição de estado open→contacted→closed (novo).                                                                |
+| Billing      | PASSOU (honesto) | Página informativa; **não implementado**, sem pagamentos simulados.                                                                         |
+| Definições   | PASSOU (código)  | 11 secções; perfil/org/membros/segurança/notificações/voz/preferências com escrita real sob authz; depende da migração 0006 (não aplicada). |
+| Analytics    | PASSOU (honesto) | Agregações reais 30 dias; métricas de áudio marcadas «não medidas».                                                                         |
 
 ## 3. Design system / UI
 
@@ -58,13 +59,13 @@ NÃO VERIFICADO em browser real (axe/Lighthouse BLOQUEADOS). Código: `aria-busy
 | ------------ | ------ | ------------------------------------------------------------------------------------ |
 | lint         | PASSOU | 0 erros, 0 avisos                                                                    |
 | typecheck    | PASSOU | 0 erros                                                                              |
-| test         | PASSOU | 162/162                                                                              |
+| test         | PASSOU | 175/175                                                                              |
 | format:check | PASSOU | (70 ficheiros reformatados nesta fase)                                               |
-| build        | PASSOU | 32 rotas; aviso Next 16: `middleware` → `proxy` (não bloqueante, migrar futuramente) |
+| build        | PASSOU | 43 rotas; aviso Next 16: `middleware` → `proxy` (não bloqueante, migrar futuramente) |
 
 ## 6. Base de dados e migrações
 
-Criadas: 0001–0005 + `rls.test.sql`. Testadas sintaticamente: sim. **Aplicadas: NÃO (em nenhum ambiente).** Executadas: NÃO.
+Criadas: 0001–0006 + `rls.test.sql` (0006 ainda sem casos pgTAP próprios). Testadas sintaticamente: sim. **Aplicadas: NÃO (em nenhum ambiente).** Executadas: NÃO.
 
 ## 7. Performance
 
@@ -84,7 +85,7 @@ PASSOU: README, architecture, security atualizados; novos: deployment, environme
 
 ## 11. Pendências e próximos passos
 
-1. Staging Supabase: aplicar migrações, correr pgTAP, teste IDOR com 2 orgs, autenticação real.
+1. Staging Supabase: aplicar migrações (incl. 0006), correr pgTAP, teste IDOR com 2 orgs, autenticação real, fluxos de definições (papéis/remoção com `memberships_guard`).
 2. Migrar `middleware.ts` → `proxy.ts` (Next 16).
 3. CSP com nonces.
 4. Rate limiting distribuído para webhooks (multi-instância).

@@ -108,6 +108,7 @@ e [`docs/known-limitations.md`](docs/known-limitations.md). Resumo honesto:
 - [`docs/voice-security.md`](docs/voice-security.md) — segurança e privacidade do motor de voz
 - [`docs/voice-testing.md`](docs/voice-testing.md) — testes do motor de voz
 - [`docs/tools-architecture.md`](docs/tools-architecture.md), [`docs/tool-security.md`](docs/tool-security.md), [`docs/automation-workflows.md`](docs/automation-workflows.md), [`docs/tool-integrations.md`](docs/tool-integrations.md), [`docs/tool-testing.md`](docs/tool-testing.md) — ferramentas e automações (Prompt 08)
+- [`docs/settings.md`](docs/settings.md) — área de definições (perfil, organização, membros, segurança, preferências)
 - [`docs/deployment.md`](docs/deployment.md) — procedimento de deploy e checklist pós-deploy
 - [`docs/environment-variables.md`](docs/environment-variables.md) — todas as variáveis, âmbito e uso
 - [`docs/testing.md`](docs/testing.md) — comandos, cobertura e testes bloqueados

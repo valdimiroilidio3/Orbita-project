@@ -13,7 +13,8 @@ Lista honesta do que **não** está pronto, para que ninguém assuma o contrári
 | Marcações         | `DevBookingAdapter` (dev) — sem calendário real; conflitos só por unicidade (org, serviço, início).                                                                                                                                    |
 | Automações        | Execução síncrona no pedido, sem fila nem retries; só triggers listados em `docs/automation-workflows.md`.                                                                                                                             |
 | Contactos         | Vista de pedidos/marcações criados por ferramentas; sem CRM, importação ou edição de contactos.                                                                                                                                        |
-| Equipa / convites | Papéis existem na BD; UI de convite de membros não implementada.                                                                                                                                                                       |
+| Equipa / convites | Gestão de papéis e remoção implementadas (`/settings/members`, via RPC da migração 0006); convites por email **não** (sem serviço de email nem política INSERT).                                                                       |
+| Definições        | Preferências/notificações são guardadas mas o **envio** de notificações, tema escuro, interface EN, MFA, listagem de sessões, avatar e eliminação de conta/organização não estão implementados (estado visível na UI).                 |
 | `apps/api`        | Esqueleto NestJS vazio; toda a lógica vive em server actions/rotas do Next.js.                                                                                                                                                         |
 
 ## Segurança

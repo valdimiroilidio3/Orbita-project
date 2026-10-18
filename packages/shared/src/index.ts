@@ -5,3 +5,4 @@ export * from './voice';
 export * from './call-event';
 export * from './tools';
 export * from './tool-entities';
+export * from './settings';

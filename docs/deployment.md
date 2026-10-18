@@ -13,13 +13,14 @@
 
 Migrações canónicas em `supabase/migrations/` (aplicar por ordem, uma única vez):
 
-| Ficheiro                     | Conteúdo                                                    | Estado neste repositório |
-| ---------------------------- | ----------------------------------------------------------- | ------------------------ |
-| `0001_initial_schema.sql`    | organizations, memberships, agents, calls                   | criada; sintaxe validada |
-| `0002_integrity.sql`         | triggers de integridade, `org_guard`, `set_updated_at()`    | criada; sintaxe validada |
-| `0003_rls_policies.sql`      | RLS completo, matriz owner/admin/member, RPC                | criada; sintaxe validada |
-| `0004_voice_engine.sql`      | call_events, voice_sessions, webhook_events                 | criada; sintaxe validada |
-| `0005_tools_automations.sql` | tool_executions, approvals, workflows, contactos, marcações | criada; sintaxe validada |
+| Ficheiro                     | Conteúdo                                                               | Estado neste repositório |
+| ---------------------------- | ---------------------------------------------------------------------- | ------------------------ |
+| `0001_initial_schema.sql`    | organizations, memberships, agents, calls                              | criada; sintaxe validada |
+| `0002_integrity.sql`         | triggers de integridade, `org_guard`, `set_updated_at()`               | criada; sintaxe validada |
+| `0003_rls_policies.sql`      | RLS completo, matriz owner/admin/member, RPC                           | criada; sintaxe validada |
+| `0004_voice_engine.sql`      | call_events, voice_sessions, webhook_events                            | criada; sintaxe validada |
+| `0005_tools_automations.sql` | tool_executions, approvals, workflows, contactos, marcações            | criada; sintaxe validada |
+| `0006_settings.sql`          | user_preferences, organization_settings, RPC list_organization_members | criada; sintaxe validada |
 
 **Não aplicadas nem testadas contra PostgreSQL real neste ambiente** (sem `psql`/Docker). Antes de produção:
 

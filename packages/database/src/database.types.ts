@@ -25,8 +25,11 @@ import type {
   Membership,
   Organization,
   OrganizationRole,
+  OrganizationMember,
+  OrganizationSettings,
   ToolApproval,
   ToolExecution,
+  UserPreferences,
 } from '@orbita/shared';
 
 export interface Database {
@@ -65,6 +68,20 @@ export interface Database {
         Insert: Omit<CallEvent, 'id' | 'processedAt'> &
           Partial<Pick<CallEvent, 'id' | 'processedAt'>>;
         Update: never;
+        Relationships: [];
+      };
+      /** Preferências pessoais (migração 0006). */
+      user_preferences: {
+        Row: UserPreferences;
+        Insert: Partial<UserPreferences> & { user_id: string };
+        Update: Partial<UserPreferences>;
+        Relationships: [];
+      };
+      /** Definições globais da organização (migração 0006). */
+      organization_settings: {
+        Row: OrganizationSettings;
+        Insert: Partial<OrganizationSettings> & { organization_id: string };
+        Update: Partial<OrganizationSettings>;
         Relationships: [];
       };
       /** Perfil público da empresa (dados autorizados para ferramentas). */
@@ -140,6 +157,11 @@ export interface Database {
       has_org_role: {
         Args: { org_id: string; required: OrganizationRole[] };
         Returns: boolean;
+      };
+      /** SECURITY DEFINER: membros + email, apenas para membros da org (0006). */
+      list_organization_members: {
+        Args: { p_organization_id: string };
+        Returns: OrganizationMember[];
       };
     };
     Enums: {

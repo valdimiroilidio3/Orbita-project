@@ -7,8 +7,14 @@ import { LoginForm } from '@/components/auth/login-form';
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string; registered?: string }>;
+  searchParams: Promise<{ next?: string; registered?: string; notice?: string }>;
 }) {
   const params = await searchParams;
-  return <LoginForm next={params.next} justRegistered={params.registered === '1'} />;
+  return (
+    <LoginForm
+      next={params.next}
+      justRegistered={params.registered === '1'}
+      notice={params.notice === 'sessoes_terminadas' ? 'Todas as sessões foram terminadas.' : null}
+    />
+  );
 }
