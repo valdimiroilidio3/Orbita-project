@@ -34,6 +34,7 @@ describe('buildBreadcrumbs', () => {
       'Calls',
       'Contacts',
       'Automations',
+      'Ferramentas',
       'Analytics',
       'Integrations',
       'Billing',

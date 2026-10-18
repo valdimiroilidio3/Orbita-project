@@ -46,6 +46,10 @@ Todas `to authenticated`. **Sem política = operação negada.**
 | `agents` | membro | membro (`created_by = auth.uid()`) | membro (+ trigger anti-transferência) | owner/admin |
 | `calls` | membro | membro | membro (+ trigger anti-transferência e transições) | **negado** (retenção) |
 | `call_events` | membro | **negado** (ingestão no servidor — service role) | **negado** | **negado** |
+| `tool_executions` / `automation_runs` | membro | **negado** (servidor, após autorização explícita) | **negado** | **negado** |
+| `agent_tools` / `automation_workflows` / `business_profiles` | membro | owner/admin | owner/admin | owner/admin (perfil: —) |
+| `contact_requests` / `appointments` | membro | membro | membro | — |
+| `tool_approvals` | membro | **negado** (servidor) | owner/admin (validação de execução/prazo no serviço) | — |
 
 ### Helpers `SECURITY DEFINER`
 

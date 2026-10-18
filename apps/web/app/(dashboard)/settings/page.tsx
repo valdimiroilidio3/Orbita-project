@@ -4,15 +4,48 @@ import { PageHeader } from '@/components/ui/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
+import { BusinessProfileForm, type BusinessProfileValues } from '@/components/tools/business-profile-form';
 import { VoiceDiagnosticsPanel } from '@/components/voice/voice-diagnostics';
 import { isSupabaseConfigured } from '@/lib/env';
+import { getBusinessProfile } from '@/lib/server/tools';
+
+export const dynamic = 'force-dynamic';
 
 export const metadata = {
   title: 'Definições',
 };
 
-export default function SettingsPage() {
+const EMPTY_PROFILE: BusinessProfileValues = {
+  displayName: '',
+  timezone: 'Europe/Lisbon',
+  address: '',
+  phone: '',
+  email: '',
+  prices: '',
+  faq: '',
+  policies: '',
+  hoursText: '',
+  servicesText: '',
+};
+
+export default async function SettingsPage() {
   const supabaseConfigured = isSupabaseConfigured();
+  const stored = supabaseConfigured ? await getBusinessProfile() : null;
+
+  const profile: BusinessProfileValues = stored
+    ? {
+        displayName: stored.display_name ?? '',
+        timezone: stored.timezone ?? 'Europe/Lisbon',
+        address: stored.address ?? '',
+        phone: stored.phone ?? '',
+        email: stored.email ?? '',
+        prices: stored.prices ?? '',
+        faq: stored.faq ?? '',
+        policies: stored.policies ?? '',
+        hoursText: stored.hours_text ?? '',
+        servicesText: stored.services_text ?? '',
+      }
+    : EMPTY_PROFILE;
 
   return (
     <div className="space-y-6">
@@ -51,6 +84,25 @@ export default function SettingsPage() {
       </Card>
 
       <VoiceDiagnosticsPanel />
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Perfil público da empresa</CardTitle>
+          <CardDescription>
+            Dados autorizados consultados pelas ferramentas do agente (informação, disponibilidade e
+            marcações). Apenas owners e admins podem editar.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {supabaseConfigured ? (
+            <BusinessProfileForm
+              values={profile}
+            />
+          ) : (
+            <p className="text-caption text-muted">Supabase não configurado — perfil indisponível.</p>
+          )}
+        </CardContent>
+      </Card>
 
       <EmptyState
         icon={Settings}

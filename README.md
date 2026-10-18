@@ -103,7 +103,7 @@ psql "$DATABASE_URL" -f supabase/seed.sql   # opcional — dados de demonstraç�
 - [`docs/voice-architecture.md`](docs/voice-architecture.md) — motor de voz IA: arquitetura e decisão técnica (Prompt 07)
 - [`docs/voice-setup.md`](docs/voice-setup.md) — configuração do motor de voz
 - [`docs/voice-security.md`](docs/voice-security.md) — segurança e privacidade do motor de voz
-- [`docs/voice-testing.md`](docs/voice-testing.md) — testes do motor de voz
+- [`docs/voice-testing.md`, `docs/tools-architecture.md`, `docs/tool-security.md`, `docs/automation-workflows.md`, `docs/tool-integrations.md`, `docs/tool-testing.md`](docs/voice-testing.md) — testes do motor de voz
 - [`docs/design-system.md`](docs/design-system.md) — design system (Fase 02)
 - [`docs/dashboard.md`](docs/dashboard.md) — dashboard e navegação (Fase 03)
 - [`docs/sprint-01.md`](docs/sprint-01.md) — briefing do sprint

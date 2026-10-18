@@ -56,7 +56,7 @@ begin
 end;
 $$;
 
-select plan(17);
+select plan(22);
 
 -- ============================================================
 -- 1. Criação de organização atribui owner corretamente (fluxo transacional)
@@ -368,6 +368,113 @@ begin
     duplicated := true;
   end;
   perform ok(duplicated, '17. evento duplicado (provider, provider_event_id) bloqueado');
+end;
+$$;
+
+-- ============================================================
+-- 18–22. Ferramentas e automações (PROMPT 08): isolamento multi-tenant,
+-- permissões de alteração e escrita privilegiada só no servidor
+-- ============================================================
+select pg_temp.as_postgres();
+insert into public.tool_executions (organization_id, agent_id, call_id, tool_id, status, risk, args)
+values (
+  (select id from public.organizations where slug = 'org-alfa'),
+  null,
+  (select id from public.calls where provider_call_id = 'call-rls-1'),
+  'business_info.lookup',
+  'succeeded',
+  'low',
+  '{}'::jsonb
+);
+insert into public.tool_approvals (organization_id, tool_execution_id, status, expires_at)
+values (
+  (select id from public.organizations where slug = 'org-alfa'),
+  (select id from public.tool_executions where tool_id = 'business_info.lookup' limit 1),
+  'pending',
+  now() + interval '1 day'
+);
+
+-- 18. Acesso cruzado: owner da org-beta não lê execuções da org-alfa
+select pg_temp.as_user('cccccccc-cccc-4ccc-8ccc-cccccccccccc');
+select is(
+  (select count(*)::int from public.tool_executions),
+  0,
+  '18. utilizador de outra organização não vê tool_executions (acesso cruzado negado)'
+);
+
+-- 19. Membro da org-alfa lê as execuções da sua organização
+select pg_temp.as_user('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb');
+select is(
+  (select count(*)::int from public.tool_executions),
+  1,
+  '19. membro vê as execuções da própria organização'
+);
+
+-- 20. Membro (não owner/admin) não altera permissões de ferramentas (agent_tools)
+do $$
+declare
+  inserted boolean := false;
+begin
+  begin
+    insert into public.agent_tools (organization_id, agent_id, tool_id, enabled)
+    values (
+      (select id from public.organizations where slug = 'org-alfa'),
+      (select id from public.agents where name = 'agente alfa' limit 1),
+      'contact_request.create',
+      true
+    );
+    inserted := true;
+  exception when insufficient_privilege or check_violation or others then
+    inserted := false;
+  end;
+  perform ok(not inserted, '20. membro não altera agent_tools (apenas owner/admin)');
+end;
+$$;
+
+-- 21. Membro não decide aprovações (update negado) e não escreve tool_executions
+do $$
+declare
+  before_status text;
+  after_status text;
+  exec_before int;
+  exec_after int;
+begin
+  select status into before_status from public.tool_approvals limit 1;
+  begin
+    update public.tool_approvals set status = 'approved';
+  exception when others then
+    null;
+  end;
+  select status into after_status from public.tool_approvals limit 1;
+
+  select count(*) into exec_before from public.tool_executions;
+  begin
+    insert into public.tool_executions (organization_id, tool_id, status, risk, args)
+    values (
+      (select id from public.organizations where slug = 'org-alfa'),
+      'business_info.lookup', 'succeeded', 'low', '{}'::jsonb
+    );
+  exception when others then
+    null;
+  end;
+  select count(*) into exec_after from public.tool_executions;
+
+  perform ok(
+    before_status = after_status and exec_before = exec_after,
+    '21. membro não aprova operações nem escreve tool_executions (escrita só no servidor)'
+  );
+end;
+$$;
+
+-- 22. Owner de outra organização não aprova operações da org-alfa
+select pg_temp.as_user('cccccccc-cccc-4ccc-8ccc-cccccccccccc');
+do $$
+declare
+  touched int;
+begin
+  update public.tool_approvals set status = 'approved';
+  get diagnostics touched = row_count;
+  perform is(touched, 0, '22. owner de outra organização não altera aprovações alheias (RLS)');
 end;
 $$;
 

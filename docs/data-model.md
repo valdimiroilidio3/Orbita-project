@@ -105,3 +105,14 @@ membership, `updated_at` por trigger.
   por cliente** (ingestão no servidor — docs/voice-security.md).
 - ⚠️ Migração criada no repositório; **não aplicada** a nenhuma instância
   Supabase neste ambiente.
+
+
+## Ferramentas e automações (migração 0005 — Prompt 08)
+
+`business_profiles` (perfil público, 1:1 organização) · `contact_requests` · `appointments`
+(horário único por serviço quando confirmada; `source='dev-adapter'` = adaptador de desenvolvimento) ·
+`agent_tools` (PK agent+tool; FK composta para `agents(organization_id,id)`) · `tool_executions`
+(auditoria; `idempotency_key` único por organização) · `tool_approvals` (1:1 execução) ·
+`automation_workflows` (steps JSONB 1–5) · `automation_runs` (`(workflow_id, trigger_key)` único).
+Todas com `organization_id` imutável (`org_guard`). Detalhes em `docs/tools-architecture.md`.
+Estado: ficheiro criado e validado sintaticamente — **não aplicado** aqui.

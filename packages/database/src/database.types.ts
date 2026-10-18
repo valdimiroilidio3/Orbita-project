@@ -11,14 +11,22 @@
 import type {
   Agent,
   AgentStatus,
+  Appointment,
+  AgentTool,
+  AutomationRun,
+  AutomationWorkflow,
+  BusinessProfile,
   Call,
   CallDirection,
   CallEvent,
   CallStatus,
+  ContactRequest,
   Currency,
   Membership,
   Organization,
   OrganizationRole,
+  ToolApproval,
+  ToolExecution,
 } from '@orbita/shared';
 
 export interface Database {
@@ -55,6 +63,64 @@ export interface Database {
       call_events: {
         Row: CallEvent;
         Insert: Omit<CallEvent, 'id' | 'processedAt'> & Partial<Pick<CallEvent, 'id' | 'processedAt'>>;
+        Update: never;
+        Relationships: [];
+      };
+      /** Perfil público da empresa (dados autorizados para ferramentas). */
+      business_profiles: {
+        Row: BusinessProfile;
+        Insert: BusinessProfile;
+        Update: Partial<BusinessProfile>;
+        Relationships: [];
+      };
+      contact_requests: {
+        Row: ContactRequest;
+        Insert: Omit<ContactRequest, 'id' | 'createdAt' | 'updatedAt' | 'status'> &
+          Partial<Pick<ContactRequest, 'id' | 'createdAt' | 'updatedAt' | 'status'>>;
+        Update: Partial<ContactRequest>;
+        Relationships: [];
+      };
+      appointments: {
+        Row: Appointment;
+        Insert: Omit<Appointment, 'id' | 'createdAt' | 'updatedAt' | 'status' | 'source'> &
+          Partial<Pick<Appointment, 'id' | 'createdAt' | 'updatedAt' | 'status' | 'source'>>;
+        Update: Partial<Appointment>;
+        Relationships: [];
+      };
+      agent_tools: {
+        Row: AgentTool;
+        Insert: Omit<AgentTool, 'createdAt' | 'updatedAt' | 'enabled' | 'config'> &
+          Partial<Pick<AgentTool, 'createdAt' | 'updatedAt' | 'enabled' | 'config'>>;
+        Update: Partial<AgentTool>;
+        Relationships: [];
+      };
+      /** Execuções de ferramentas + auditoria — escrita apenas no servidor. */
+      tool_executions: {
+        Row: ToolExecution;
+        Insert: Omit<ToolExecution, 'id' | 'createdAt' | 'updatedAt'> &
+          Partial<Pick<ToolExecution, 'id' | 'createdAt' | 'updatedAt'>>;
+        Update: Partial<ToolExecution>;
+        Relationships: [];
+      };
+      tool_approvals: {
+        Row: ToolApproval;
+        Insert: Omit<ToolApproval, 'id' | 'createdAt' | 'status' | 'requestedAt'> &
+          Partial<Pick<ToolApproval, 'id' | 'createdAt' | 'status' | 'requestedAt'>>;
+        Update: Partial<ToolApproval>;
+        Relationships: [];
+      };
+      automation_workflows: {
+        Row: AutomationWorkflow;
+        Insert: Omit<AutomationWorkflow, 'id' | 'createdAt' | 'updatedAt' | 'active'> &
+          Partial<Pick<AutomationWorkflow, 'id' | 'createdAt' | 'updatedAt' | 'active'>>;
+        Update: Partial<AutomationWorkflow>;
+        Relationships: [];
+      };
+      /** Execuções de workflows — escrita apenas no servidor. */
+      automation_runs: {
+        Row: AutomationRun;
+        Insert: Omit<AutomationRun, 'id' | 'createdAt' | 'startedAt'> &
+          Partial<Pick<AutomationRun, 'id' | 'createdAt' | 'startedAt'>>;
         Update: never;
         Relationships: [];
       };

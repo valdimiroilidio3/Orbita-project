@@ -4,9 +4,11 @@ import { notFound } from 'next/navigation';
 import {
   CALL_DIRECTION_LABELS,
   CALL_STATUS_LABELS,
+  TOOL_DEFINITIONS,
   formatCurrency,
   formatDateTime,
   formatDuration,
+  type ToolId,
 } from '@orbita/shared';
 
 import { CallControls } from '@/components/calls/call-controls';
@@ -20,6 +22,7 @@ import { isSupabaseConfigured } from '@/lib/env';
 import { isSimulatedProvider } from '@/lib/calls';
 import { demoCalls } from '@/lib/demo-data';
 import { getMyCall } from '@/lib/server/calls';
+import { listExecutions } from '@/lib/server/tools';
 
 export const dynamic = 'force-dynamic';
 
@@ -97,6 +100,8 @@ export default async function CallDetailPage({
 
   const call = await getMyCall(id);
   if (!call) notFound();
+
+  const toolExecutions = await listExecutions({ callId: call.id, limit: 10 });
 
   return (
     <div className="space-y-6">
@@ -192,6 +197,42 @@ export default async function CallDetailPage({
               estimativa do simulador (0,02 €/min).
             </p>
           ) : null}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Ações executadas pelo agente</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {toolExecutions.length === 0 ? (
+            <p className="text-caption text-muted">Sem ações de ferramentas associadas a esta chamada.</p>
+          ) : (
+            <ul className="space-y-2">
+              {toolExecutions.map((execution) => (
+                <li
+                  key={execution.id}
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border px-3.5 py-2.5"
+                >
+                  <div>
+                    <p className="text-small font-medium">
+                      {TOOL_DEFINITIONS[execution.toolId as ToolId]?.name ?? execution.toolId}
+                      <span className="ml-2 text-caption text-muted">
+                        {new Date(execution.createdAt).toLocaleTimeString('pt-PT')}
+                      </span>
+                    </p>
+                    <p className="text-caption text-muted">
+                      {execution.resultMessage ?? execution.errorMessage ?? '—'}
+                      {execution.status === 'awaiting_approval' ? ' · a aguardar aprovação' : ''}
+                    </p>
+                  </div>
+                  <Badge variant={execution.status === 'succeeded' ? 'success' : execution.status === 'awaiting_approval' ? 'warning' : 'outline'}>
+                    {execution.status}
+                  </Badge>
+                </li>
+              ))}
+            </ul>
+          )}
         </CardContent>
       </Card>
     </div>

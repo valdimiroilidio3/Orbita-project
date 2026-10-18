@@ -9,6 +9,7 @@ import {
   Settings,
   Users,
   Workflow,
+  Wrench,
 } from 'lucide-react';
 
 /**
@@ -60,8 +61,15 @@ export const NAV_ITEMS: NavItem[] = [
     href: '/automations',
     label: 'Automations',
     icon: Workflow,
-    status: 'upcoming',
+    status: 'available',
     description: 'Fluxos e automações',
+  },
+  {
+    href: '/tools',
+    label: 'Ferramentas',
+    icon: Wrench,
+    status: 'available',
+    description: 'Catálogo de ferramentas do agente',
   },
   {
     href: '/analytics',

@@ -7,6 +7,7 @@ import {
 } from '@/lib/voice/events';
 import { computeLifecyclePatch, type CallLifecycleState } from '@/lib/voice/lifecycle';
 import { getSupabaseServiceClient } from '@/lib/supabase/service';
+import { dispatchCallAutomations } from '@/lib/tools/call-triggers';
 import type { InboundCallInfo } from '@/lib/voice/contracts';
 
 /**
@@ -59,6 +60,8 @@ interface CallStateRow {
   started_at: string | null;
   answered_at: string | null;
   voice_session_id: string | null;
+  from_number?: string | null;
+  to_number?: string | null;
 }
 
 function toLifecycleState(row: CallStateRow, lastOccurredAt: string | null): CallLifecycleState {
@@ -90,7 +93,7 @@ export async function ingestStatusEvent(params: {
 
   const { data: call, error: callError } = await supabase
     .from('calls')
-    .select('id, organization_id, status, started_at, answered_at, voice_session_id')
+    .select('id, organization_id, status, started_at, answered_at, voice_session_id, from_number, to_number')
     .eq('provider', params.provider)
     .eq('provider_call_id', params.callRef)
     .maybeSingle();
@@ -155,6 +158,15 @@ export async function ingestStatusEvent(params: {
     return { ok: false, code: 'persistence_failed', detail: updateError.message };
   }
 
+  // Workflows (Prompt 08) — após persistência real do estado; nunca quebra a ingestão.
+  await dispatchCallAutomations({
+    organizationId: callRow.organization_id,
+    callId: callRow.id,
+    status: outcome.status,
+    fromNumber: callRow.from_number ?? null,
+    toNumber: callRow.to_number ?? null,
+  });
+
   return { ok: true, kind: 'processed', callId: callRow.id, status: outcome.status };
 }
 
@@ -190,7 +202,7 @@ export async function ingestInboundCall(params: {
 
   const { data: existing } = await supabase
     .from('calls')
-    .select('id, organization_id, status, started_at, answered_at, voice_session_id')
+    .select('id, organization_id, status, started_at, answered_at, voice_session_id, from_number, to_number')
     .eq('provider', params.provider)
     .eq('provider_call_id', params.info.providerCallId)
     .maybeSingle();
@@ -252,5 +264,15 @@ export async function ingestInboundCall(params: {
   if (persisted.duplicate) {
     return { ok: true, kind: 'duplicate', callId };
   }
+
+  await dispatchCallAutomations({
+    organizationId: agent.organization_id,
+    callId,
+    status: 'queued',
+    fromNumber: params.info.fromNumber,
+    toNumber: params.info.inboundNumber,
+    kind: 'received',
+  });
+
   return { ok: true, kind: 'processed', callId, status: 'queued' };
 }

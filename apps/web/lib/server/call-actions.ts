@@ -24,6 +24,7 @@ import { getActiveOrganization } from '@/lib/server/organizations';
 import { requireUser } from '@/lib/server/session';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import type { CallFormState } from '@/lib/server/call-form-state';
+import { dispatchCallAutomations } from '@/lib/tools/call-triggers';
 
 /**
  * Server actions do motor de chamadas.
@@ -142,7 +143,7 @@ export async function finishCallAction(formData: FormData): Promise<void> {
 
   const { data: call } = await supabase
     .from('calls')
-    .select('status, started_at')
+    .select('status, started_at, from_number, to_number')
     .eq('id', id)
     .eq('organization_id', organization.id)
     .maybeSingle();
@@ -166,6 +167,17 @@ export async function finishCallAction(formData: FormData): Promise<void> {
     .eq('id', id)
     .eq('organization_id', organization.id);
 
+  if (!error) {
+    // Gatilho real `call.completed` (simulador = chamada real na BD, sem telefonia).
+    await dispatchCallAutomations({
+      organizationId: organization.id,
+      callId: id,
+      status: 'completed',
+      fromNumber: call.from_number ?? null,
+      toNumber: call.to_number ?? null,
+    });
+  }
+
   redirect(error ? `/calls/${id}?error=atualizacao_falhou` : `/calls/${id}?status=updated`);
 }
 
@@ -179,7 +191,7 @@ export async function cancelCallAction(formData: FormData): Promise<void> {
 
   const { data: call } = await supabase
     .from('calls')
-    .select('status, started_at')
+    .select('status, started_at, from_number, to_number')
     .eq('id', id)
     .eq('organization_id', organization.id)
     .maybeSingle();
