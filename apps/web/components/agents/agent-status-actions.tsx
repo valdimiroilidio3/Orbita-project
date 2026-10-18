@@ -22,7 +22,11 @@ export function AgentStatusActions({ id, status }: { id: string; status: AgentSt
   if (actions.length === 0) return null;
 
   return (
-    <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Alterar estado do agente">
+    <div
+      className="flex flex-wrap items-center gap-2"
+      role="group"
+      aria-label="Alterar estado do agente"
+    >
       {actions.map((action) => {
         const Icon = ICONS[action.status];
         return (
@@ -32,7 +36,11 @@ export function AgentStatusActions({ id, status }: { id: string; status: AgentSt
             <Button
               type="submit"
               variant={
-                action.variant === 'primary' ? 'primary' : action.variant === 'danger' ? 'destructive' : 'outline'
+                action.variant === 'primary'
+                  ? 'primary'
+                  : action.variant === 'danger'
+                    ? 'destructive'
+                    : 'outline'
               }
               size="sm"
             >

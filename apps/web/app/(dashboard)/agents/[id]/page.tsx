@@ -4,7 +4,11 @@ import { notFound } from 'next/navigation';
 import type { AgentStatus } from '@orbita/shared';
 
 import { agentPermissions, agentStatusLabel } from '@/lib/agents';
+import { Copy } from 'lucide-react';
+
+import { Button } from '@/components/ui/button';
 import { AgentDeleteButton } from '@/components/agents/agent-delete-button';
+import { duplicateAgentAction } from '@/lib/server/agent-actions';
 import { AgentForm } from '@/components/agents/agent-form';
 import { AgentStatusActions } from '@/components/agents/agent-status-actions';
 import { AgentVoicePanel } from '@/components/agents/agent-voice-panel';
@@ -29,13 +33,30 @@ const NOTICE_BY_ERROR: Record<string, string> = {
   sem_permissao: 'Não tens permissão para eliminar agentes (apenas owners e admins).',
   atualizacao_falhou: 'Não foi possível atualizar o agente. Tenta novamente.',
   eliminacao_falhou: 'Não foi possível eliminar o agente. Tenta novamente.',
+  duplicacao_falhou: 'Não foi possível duplicar o agente. Tenta novamente.',
+  nao_encontrado: 'Agente não encontrado nesta organização.',
 };
 
-type SearchParams = Promise<{ created?: string; status?: string; error?: string }>;
+type SearchParams = Promise<{
+  created?: string;
+  duplicated?: string;
+  status?: string;
+  error?: string;
+}>;
 
 function resolveNotice(query: Awaited<SearchParams>) {
+  if (query.duplicated) {
+    return {
+      type: 'success' as const,
+      message:
+        'Agente duplicado em rascunho (sem número de entrada — atribui um número único se necessário).',
+    };
+  }
   if (query.created) {
-    return { type: 'success' as const, message: 'Agente criado em rascunho. Revê a configuração antes de publicar.' };
+    return {
+      type: 'success' as const,
+      message: 'Agente criado em rascunho. Revê a configuração antes de publicar.',
+    };
   }
   if (query.status === 'updated') {
     return { type: 'success' as const, message: 'Estado do agente atualizado.' };
@@ -83,10 +104,7 @@ export default async function AgentDetailPage({
 
     return (
       <div className="space-y-6">
-        <PageHeader
-          title={demo.name}
-          description="Agente de demonstração — leitura apenas."
-        >
+        <PageHeader title={demo.name} description="Agente de demonstração — leitura apenas.">
           <div className="flex items-center gap-2">
             <StatusBadge status={demo.status} kind="agent" />
           </div>
@@ -155,6 +173,13 @@ export default async function AgentDetailPage({
         <div className="flex flex-wrap items-center gap-2">
           <StatusBadge status={agent.status as AgentStatus} kind="agent" />
           <AgentStatusActions id={agent.id} status={agent.status} />
+          <form action={duplicateAgentAction}>
+            <input type="hidden" name="id" value={agent.id} />
+            <Button type="submit" variant="outline" size="sm">
+              <Copy className="h-3.5 w-3.5" aria-hidden />
+              Duplicar
+            </Button>
+          </form>
           {permissions.canDelete ? <AgentDeleteButton id={agent.id} name={agent.name} /> : null}
         </div>
       </PageHeader>

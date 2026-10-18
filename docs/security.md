@@ -18,20 +18,20 @@
 
 ## 2. Matriz de papéis
 
-| Operação | owner | admin | member |
-| --- | :-: | :-: | :-: |
-| Ler organização / memberships / agents / calls | ✓ | ✓ | ✓ |
-| Atualizar organização (nome/slug) | ✓ | ✓ | — |
-| Apagar organização | ✓ | — | — |
-| Atualizar roles de outros membros | ✓ | ✓ (exceto owners) | — |
-| Atribuir role `owner` | ✓ | — | — |
-| Alterar a própria role | — (trigger) | — (trigger) | — (trigger) |
-| Remover membros | ✓ | ✓ (exceto owners) | sai da própria membership |
-| Criar/atualizar agents | ✓ | ✓ | ✓ |
-| Apagar agents | ✓ | ✓ | — |
-| Criar/atualizar calls | ✓ | ✓ | ✓ |
-| Apagar calls | — (histórico retido) | — | — |
-| Criar organizações | via RPC `create_organization` (qualquer sessão autenticada) | | |
+| Operação                                       |                            owner                            |       admin       |          member           |
+| ---------------------------------------------- | :---------------------------------------------------------: | :---------------: | :-----------------------: |
+| Ler organização / memberships / agents / calls |                              ✓                              |         ✓         |             ✓             |
+| Atualizar organização (nome/slug)              |                              ✓                              |         ✓         |             —             |
+| Apagar organização                             |                              ✓                              |         —         |             —             |
+| Atualizar roles de outros membros              |                              ✓                              | ✓ (exceto owners) |             —             |
+| Atribuir role `owner`                          |                              ✓                              |         —         |             —             |
+| Alterar a própria role                         |                         — (trigger)                         |    — (trigger)    |        — (trigger)        |
+| Remover membros                                |                              ✓                              | ✓ (exceto owners) | sai da própria membership |
+| Criar/atualizar agents                         |                              ✓                              |         ✓         |             ✓             |
+| Apagar agents                                  |                              ✓                              |         ✓         |             —             |
+| Criar/atualizar calls                          |                              ✓                              |         ✓         |             ✓             |
+| Apagar calls                                   |                    — (histórico retido)                     |         —         |             —             |
+| Criar organizações                             | via RPC `create_organization` (qualquer sessão autenticada) |                   |                           |
 
 `member` = funcionalidade do produto (agentes/chamadas), sem administração.
 
@@ -39,17 +39,17 @@
 
 Todas `to authenticated`. **Sem política = operação negada.**
 
-| Tabela | SELECT | INSERT | UPDATE | DELETE |
-| --- | --- | --- | --- | --- |
-| `organizations` | membro (`is_org_member`) | só via RPC | owner/admin | owner |
-| `memberships` | membro | **negado** (só RPC) | owner/admin (+ triggers) | própria saída ou owner/admin (+ trigger do último owner) |
-| `agents` | membro | membro (`created_by = auth.uid()`) | membro (+ trigger anti-transferência) | owner/admin |
-| `calls` | membro | membro | membro (+ trigger anti-transferência e transições) | **negado** (retenção) |
-| `call_events` | membro | **negado** (ingestão no servidor — service role) | **negado** | **negado** |
-| `tool_executions` / `automation_runs` | membro | **negado** (servidor, após autorização explícita) | **negado** | **negado** |
-| `agent_tools` / `automation_workflows` / `business_profiles` | membro | owner/admin | owner/admin | owner/admin (perfil: —) |
-| `contact_requests` / `appointments` | membro | membro | membro | — |
-| `tool_approvals` | membro | **negado** (servidor) | owner/admin (validação de execução/prazo no serviço) | — |
+| Tabela                                                       | SELECT                   | INSERT                                            | UPDATE                                               | DELETE                                                   |
+| ------------------------------------------------------------ | ------------------------ | ------------------------------------------------- | ---------------------------------------------------- | -------------------------------------------------------- |
+| `organizations`                                              | membro (`is_org_member`) | só via RPC                                        | owner/admin                                          | owner                                                    |
+| `memberships`                                                | membro                   | **negado** (só RPC)                               | owner/admin (+ triggers)                             | própria saída ou owner/admin (+ trigger do último owner) |
+| `agents`                                                     | membro                   | membro (`created_by = auth.uid()`)                | membro (+ trigger anti-transferência)                | owner/admin                                              |
+| `calls`                                                      | membro                   | membro                                            | membro (+ trigger anti-transferência e transições)   | **negado** (retenção)                                    |
+| `call_events`                                                | membro                   | **negado** (ingestão no servidor — service role)  | **negado**                                           | **negado**                                               |
+| `tool_executions` / `automation_runs`                        | membro                   | **negado** (servidor, após autorização explícita) | **negado**                                           | **negado**                                               |
+| `agent_tools` / `automation_workflows` / `business_profiles` | membro                   | owner/admin                                       | owner/admin                                          | owner/admin (perfil: —)                                  |
+| `contact_requests` / `appointments`                          | membro                   | membro                                            | membro                                               | —                                                        |
+| `tool_approvals`                                             | membro                   | **negado** (servidor)                             | owner/admin (validação de execução/prazo no serviço) | —                                                        |
 
 ### Helpers `SECURITY DEFINER`
 
@@ -118,3 +118,25 @@ correr num Supabase local/estágio.
 4. `calls` sem DELETE para todos — futuramente, política de retenção/expurgo
    administrativo controlado.
 5. Auditoria de alterações de roles (tabela `audit_events`) — fase seguinte.
+
+## 7. Headers HTTP e CSP (fase final)
+
+Definidos em `apps/web/next.config.ts` e verificados no build de produção:
+
+- `Content-Security-Policy`: `default-src 'self'`; `script-src 'self' 'unsafe-inline'` (sem nonces — limitação documentada;
+  `'unsafe-eval'` apenas em desenvolvimento); `connect-src 'self'` + origin Supabase (https/wss) derivado de
+  `NEXT_PUBLIC_SUPABASE_URL`; `object-src 'none'`; `base-uri 'self'`; `form-action 'self'`; `frame-ancestors 'none'`;
+  `upgrade-insecure-requests` (produção).
+- `Strict-Transport-Security: max-age=63072000; includeSubDomains` (produção).
+- `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`,
+  `Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()`, `X-DNS-Prefetch-Control: off`.
+- `ALLOW_FRAME_EMBEDDING=true` (build-time) relaxa apenas o framing, para previews embebidos — nunca em produção.
+
+## 8. Privacidade de números e logs
+
+- Listas de chamadas mostram números mascarados (`maskPhoneNumber`); o número completo só no detalhe da chamada
+  (acesso já autorizado pela organização).
+- A pesquisa em `/calls` é sanitizada no servidor (≤ 40 caracteres, sem wildcards do utilizador) e corre sob RLS.
+- O logger (`lib/observability/logger.ts`) redige chaves sensíveis (`authorization`, `token`, `secret`, `from_number`,
+  `to_number`, `args`, `transcript`, …) e trunca strings; os webhooks registam apenas `correlationId`, código e resultado.
+- `/api/health` expõe presença/estado de integrações, nunca valores.

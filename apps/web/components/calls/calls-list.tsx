@@ -2,7 +2,8 @@
 
 import { Plus } from 'lucide-react';
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { useMemo, useState, useTransition } from 'react';
 
 import {
   CALL_DIRECTIONS,
@@ -25,21 +26,60 @@ import type { CallRecord } from '@/lib/dashboard/types';
 
 const PAGE_SIZE = 10;
 
+export interface ServerPagingState {
+  page: number;
+  pageCount: number;
+  total: number;
+  query: string;
+  status: CallStatus | 'all';
+  direction: CallDirection | 'all';
+}
+
 export interface CallsListProps {
   records: CallRecord[];
   demoMode: boolean;
   canStart: boolean;
   notice?: { type: 'success' | 'error'; message: string } | null;
+  /**
+   * Quando presente, filtros/pesquisa/paginação são aplicados NO SERVIDOR
+   * (via URL) — o histórico completo fica acessível. Sem ele (demo),
+   * filtra-se localmente o conjunto de demonstração.
+   */
+  server?: ServerPagingState;
 }
 
 /** Histórico de chamadas com filtros, pesquisa, paginação e estados vazios. */
-export function CallsList({ records, demoMode, canStart, notice }: CallsListProps) {
-  const [status, setStatus] = useState<CallStatus | 'all'>('all');
-  const [direction, setDirection] = useState<CallDirection | 'all'>('all');
-  const [query, setQuery] = useState('');
-  const [page, setPage] = useState(1);
+export function CallsList({ records, demoMode, canStart, notice, server }: CallsListProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const [, startTransition] = useTransition();
+
+  const [localStatus, setStatus] = useState<CallStatus | 'all'>(server?.status ?? 'all');
+  const [localDirection, setDirection] = useState<CallDirection | 'all'>(
+    server?.direction ?? 'all',
+  );
+  const [localQuery, setQuery] = useState(server?.query ?? '');
+  const [localPage, setPage] = useState(server?.page ?? 1);
+
+  const status = server ? server.status : localStatus;
+  const direction = server ? server.direction : localDirection;
+  const query = server ? localQuery : localQuery;
+
+  /** Navega com os filtros na URL (modo servidor). */
+  const navigate = (next: Partial<ServerPagingState>) => {
+    if (!server) return;
+    const params = new URLSearchParams();
+    const merged = { ...server, query: localQuery, ...next };
+    if (merged.query.trim()) params.set('q', merged.query.trim());
+    if (merged.status !== 'all') params.set('status', merged.status);
+    if (merged.direction !== 'all') params.set('direction', merged.direction);
+    if (merged.page > 1) params.set('page', String(merged.page));
+    const qs = params.toString();
+    startTransition(() => router.push(qs ? `${pathname}?${qs}` : pathname));
+  };
 
   const filtered = useMemo(() => {
+    if (server) return records;
     const normalizedQuery = query.trim().toLowerCase();
     return records.filter((call) => {
       if (status !== 'all' && call.status !== status) return false;
@@ -51,11 +91,14 @@ export function CallsList({ records, demoMode, canStart, notice }: CallsListProp
       }
       return true;
     });
-  }, [records, status, direction, query]);
+  }, [records, status, direction, query, server]);
 
-  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const currentPage = Math.min(page, pageCount);
-  const calls = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const pageCount = server ? server.pageCount : Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const currentPage = server ? server.page : Math.min(localPage, pageCount);
+  const calls = server
+    ? filtered
+    : filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const total = server ? server.total : filtered.length;
   const hasFilters = status !== 'all' || direction !== 'all' || query.trim() !== '';
 
   return (
@@ -65,7 +108,7 @@ export function CallsList({ records, demoMode, canStart, notice }: CallsListProp
         description={
           demoMode
             ? 'Histórico de chamadas com estado, direção, duração e data. Dados de demonstração.'
-            : `Histórico de chamadas da tua organização (${records.length}). Chamadas com o simulador local — sem telefonia real.`
+            : `Histórico de chamadas da tua organização (${total}). Chamadas com o simulador local — sem telefonia real.`
         }
       >
         {canStart ? (
@@ -101,24 +144,39 @@ export function CallsList({ records, demoMode, canStart, notice }: CallsListProp
           setDirection('all');
           setQuery('');
           setPage(1);
+          navigate({ status: 'all', direction: 'all', query: '', page: 1 });
         }}
       >
-        <SearchInput
-          value={query}
-          onValueChange={(value) => {
-            setQuery(value);
-            setPage(1);
+        <form
+          className="contents"
+          onSubmit={(event) => {
+            event.preventDefault();
+            navigate({ query: localQuery, page: 1 });
           }}
-          placeholder="Pesquisar por número ou agente…"
-          label="Pesquisar chamadas"
-          className="sm:max-w-xs"
-        />
+        >
+          <SearchInput
+            value={localQuery}
+            onValueChange={(value) => {
+              setQuery(value);
+              setPage(1);
+              if (server && value.trim() === '' && server.query !== '') {
+                navigate({ query: '', page: 1 });
+              }
+            }}
+            placeholder={
+              server ? 'Pesquisar por número (Enter)…' : 'Pesquisar por número ou agente…'
+            }
+            label="Pesquisar chamadas"
+            className="sm:max-w-xs"
+          />
+        </form>
         <FilterSelect
           label="Direção"
           value={direction}
           onValueChange={(value) => {
             setDirection(value as CallDirection | 'all');
             setPage(1);
+            navigate({ direction: value as CallDirection | 'all', page: 1 });
           }}
           options={[
             { value: 'all', label: 'Todas as direções' },
@@ -131,6 +189,7 @@ export function CallsList({ records, demoMode, canStart, notice }: CallsListProp
           onValueChange={(value) => {
             setStatus(value as CallStatus | 'all');
             setPage(1);
+            navigate({ status: value as CallStatus | 'all', page: 1 });
           }}
           options={[
             { value: 'all', label: 'Todos os estados' },
@@ -145,12 +204,15 @@ export function CallsList({ records, demoMode, canStart, notice }: CallsListProp
         linkToDetail
       />
 
-      {filtered.length > 0 ? (
+      {total > 0 ? (
         <Pagination
           page={currentPage}
           pageCount={pageCount}
-          label={`${filtered.length} chamadas`}
-          onPageChange={setPage}
+          label={`${total} chamadas`}
+          onPageChange={(next) => {
+            setPage(next);
+            navigate({ page: next });
+          }}
         />
       ) : null}
     </div>

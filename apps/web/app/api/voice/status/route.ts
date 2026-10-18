@@ -19,17 +19,26 @@ export const runtime = 'nodejs';
 
 export async function GET() {
   if (!isSupabaseConfigured()) {
-    return NextResponse.json({ error: { code: 'not_configured', message: 'Supabase não configurado.' } }, { status: 503 });
+    return NextResponse.json(
+      { error: { code: 'not_configured', message: 'Supabase não configurado.' } },
+      { status: 503 },
+    );
   }
 
   const user = await getUser();
   if (!user) {
-    return NextResponse.json({ error: { code: 'unauthenticated', message: 'Sessão obrigatória.' } }, { status: 401 });
+    return NextResponse.json(
+      { error: { code: 'unauthenticated', message: 'Sessão obrigatória.' } },
+      { status: 401 },
+    );
   }
 
   const organization = await getActiveOrganization();
   if (!organization) {
-    return NextResponse.json({ error: { code: 'no_organization', message: 'Sem organização ativa.' } }, { status: 403 });
+    return NextResponse.json(
+      { error: { code: 'no_organization', message: 'Sem organização ativa.' } },
+      { status: 403 },
+    );
   }
 
   const envFacts = readVoiceEnv();

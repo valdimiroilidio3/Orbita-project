@@ -6,12 +6,12 @@
 
 ## O que está implementado
 
-| Área | Conteúdo |
-| --- | --- |
-| Listagem `/agents` | Dados reais da organização ativa (RLS) ou demo rotulada; filtros por estado; estados vazios; paginação pronta no serviço (`limit`/`offset`/total) |
-| Criação `/agents/new` | Formulário completo: nome, descrição, instruções (limite 20 000 com contador), idioma, configuração de voz — cria em **rascunho** |
-| Detalhe `/agents/[id]` | Edição, transições de estado, eliminação (owner/admin), avisos de operação |
-| Server actions | `createAgentAction`, `updateAgentAction`, `setAgentStatusAction`, `deleteAgentAction` — validação Zod sempre no servidor |
+| Área                   | Conteúdo                                                                                                                                          |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Listagem `/agents`     | Dados reais da organização ativa (RLS) ou demo rotulada; filtros por estado; estados vazios; paginação pronta no serviço (`limit`/`offset`/total) |
+| Criação `/agents/new`  | Formulário completo: nome, descrição, instruções (limite 20 000 com contador), idioma, configuração de voz — cria em **rascunho**                 |
+| Detalhe `/agents/[id]` | Edição, transições de estado, eliminação (owner/admin), avisos de operação                                                                        |
+| Server actions         | `createAgentAction`, `updateAgentAction`, `setAgentStatusAction`, `deleteAgentAction` — validação Zod sempre no servidor                          |
 
 ## Regras de produto
 
@@ -36,10 +36,10 @@ ambiente do servidor.
 
 ### Permissões (UI = conveniência; RLS = autoridade)
 
-| Ação | owner | admin | member |
-| --- | --- | --- | --- |
-| Criar/editar agentes e estados | ✅ | ✅ | ✅ |
-| Eliminar agente | ✅ | ✅ | ❌ |
+| Ação                           | owner | admin | member |
+| ------------------------------ | ----- | ----- | ------ |
+| Criar/editar agentes e estados | ✅    | ✅    | ✅     |
+| Eliminar agente                | ✅    | ✅    | ❌     |
 
 A organização vem sempre da sessão validada (`organization_id` nunca é aceite
 do cliente). A eliminação **retém o histórico de chamadas** (`agent_id` → NULL).

@@ -59,7 +59,8 @@ export async function saveBusinessProfileAction(
 ): Promise<ToolFormState> {
   if (!isSupabaseConfigured()) return notConfigured();
   const { organization, allowed } = await requireManager();
-  if (!allowed) return { error: 'Apenas owners e admins podem editar o perfil público.', success: null };
+  if (!allowed)
+    return { error: 'Apenas owners e admins podem editar o perfil público.', success: null };
 
   const parsed = businessProfileSchema.safeParse({
     displayName: formData.get('displayName') ?? '',
@@ -119,10 +120,12 @@ export async function setAgentToolAction(formData: FormData): Promise<void> {
   void user;
 
   if (enabled) {
-    await supabase.from('agent_tools').upsert(
-      { organization_id: organization.id, agent_id: agentId, tool_id: toolId, enabled: true },
-      { onConflict: 'agent_id,tool_id' },
-    );
+    await supabase
+      .from('agent_tools')
+      .upsert(
+        { organization_id: organization.id, agent_id: agentId, tool_id: toolId, enabled: true },
+        { onConflict: 'agent_id,tool_id' },
+      );
   } else {
     await supabase
       .from('agent_tools')
@@ -172,7 +175,9 @@ export async function decideApprovalAction(formData: FormData): Promise<void> {
   });
 
   if (!verdict.ok) {
-    redirect(`/tools?error=aprovacao&motivo=${encodeURIComponent(APPROVAL_DECISION_ERROR_LABELS[verdict.reason])}`);
+    redirect(
+      `/tools?error=aprovacao&motivo=${encodeURIComponent(APPROVAL_DECISION_ERROR_LABELS[verdict.reason])}`,
+    );
   }
 
   await supabase
@@ -361,10 +366,38 @@ export async function runToolAction(
   }
 
   return {
-    error: outcome.result.status === 'success' ? null : `(${outcome.result.status}) ${outcome.result.message}`,
+    error:
+      outcome.result.status === 'success'
+        ? null
+        : `(${outcome.result.status}) ${outcome.result.message}`,
     success:
       outcome.result.status === 'success'
         ? `${outcome.result.message} [${outcome.executionId ?? 'sem execução'}]`
         : null,
   };
+}
+
+/* ── Pedidos de contacto: atualização de estado (membros) ───── */
+
+export async function setContactRequestStatusAction(formData: FormData): Promise<void> {
+  if (!isSupabaseConfigured()) redirect('/contacts?error=nao_configurado');
+  await requireUser();
+  const organization = await getActiveOrganization();
+  if (!organization) redirect('/onboarding');
+
+  const id = String(formData.get('id') ?? '');
+  const status = String(formData.get('status') ?? '');
+  if (!id || !['open', 'contacted', 'closed'].includes(status)) {
+    redirect('/contacts?error=argumentos_invalidos');
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase
+    .from('contact_requests')
+    .update({ status })
+    .eq('id', id)
+    .eq('organization_id', organization.id);
+
+  revalidatePath('/contacts');
+  redirect(error ? '/contacts?error=atualizacao_falhou' : '/contacts?updated=1');
 }

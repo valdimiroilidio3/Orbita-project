@@ -9,26 +9,26 @@
 
 ## Níveis de risco e confirmação (§5)
 
-| nível | ferramentas | confirmação |
-|---|---|---|
-| baixo | consultas (informação, disponibilidade) | nenhuma |
+| nível    | ferramentas                                 | confirmação                                                                    |
+| -------- | ------------------------------------------- | ------------------------------------------------------------------------------ |
+| baixo    | consultas (informação, disponibilidade)     | nenhuma                                                                        |
 | moderado | pedido de contacto, marcação, transferência | verbal do interlocutor **após** sucesso; `requireApproval` opcional por agente |
-| elevado | — (não implementado nesta fase) | aprovação humana obrigatória (`human_approval`) |
+| elevado  | — (não implementado nesta fase)             | aprovação humana obrigatória (`human_approval`)                                |
 
 Confirmação verbal demonstra intenção, **não** substitui autenticação forte.
 
 ## Base de dados e RLS (migração 0005)
 
-| tabela | select | insert | update | delete |
-|---|---|---|---|---|
-| `business_profiles` | membro | owner/admin | owner/admin | — |
-| `contact_requests` | membro | membro | membro | — |
-| `appointments` | membro | membro | membro | — |
-| `agent_tools` | membro | owner/admin | owner/admin | owner/admin |
-| `tool_executions` | membro | **negado** (servidor) | **negado** | — |
-| `tool_approvals` | membro | **negado** (servidor) | owner/admin | — |
-| `automation_workflows` | membro | owner/admin | owner/admin | owner/admin |
-| `automation_runs` | membro | **negado** (servidor) | **negado** | — |
+| tabela                 | select | insert                | update      | delete      |
+| ---------------------- | ------ | --------------------- | ----------- | ----------- |
+| `business_profiles`    | membro | owner/admin           | owner/admin | —           |
+| `contact_requests`     | membro | membro                | membro      | —           |
+| `appointments`         | membro | membro                | membro      | —           |
+| `agent_tools`          | membro | owner/admin           | owner/admin | owner/admin |
+| `tool_executions`      | membro | **negado** (servidor) | **negado**  | —           |
+| `tool_approvals`       | membro | **negado** (servidor) | owner/admin | —           |
+| `automation_workflows` | membro | owner/admin           | owner/admin | owner/admin |
+| `automation_runs`      | membro | **negado** (servidor) | **negado**  | —           |
 
 Todas têm `organization_id` imutável (trigger `org_guard`). As escritas privilegiadas usam o cliente de
 service role (`lib/supabase/service.ts`) **só** no servidor e **depois** de o executor verificar

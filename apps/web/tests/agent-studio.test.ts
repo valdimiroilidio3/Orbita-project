@@ -57,14 +57,21 @@ describe('createAgentSchema com voiceConfig', () => {
   });
 
   it('rejeita instruções acima do limite', () => {
-    expect(createAgentSchema.safeParse({ name: 'A', instructions: 'a'.repeat(20001) }).success).toBe(false);
-    expect(createAgentSchema.safeParse({ name: 'A', instructions: 'a'.repeat(20000) }).success).toBe(true);
+    expect(
+      createAgentSchema.safeParse({ name: 'A', instructions: 'a'.repeat(20001) }).success,
+    ).toBe(false);
+    expect(
+      createAgentSchema.safeParse({ name: 'A', instructions: 'a'.repeat(20000) }).success,
+    ).toBe(true);
   });
 });
 
 describe('updateAgentSchema', () => {
   it('exige id válido e aceita campos parciais', () => {
-    const parsed = updateAgentSchema.parse({ id: '00000000-0000-4000-8000-000000000001', name: 'Novo nome' });
+    const parsed = updateAgentSchema.parse({
+      id: '00000000-0000-4000-8000-000000000001',
+      name: 'Novo nome',
+    });
     expect(parsed.name).toBe('Novo nome');
     expect(updateAgentSchema.safeParse({ name: 'sem id' }).success).toBe(false);
     expect(updateAgentSchema.safeParse({ id: 'não-é-uuid' }).success).toBe(false);

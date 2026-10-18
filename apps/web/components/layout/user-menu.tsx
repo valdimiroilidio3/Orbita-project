@@ -22,7 +22,11 @@ export interface UserMenuProps {
 }
 
 /** Menu de utilizador — sessão real (logout) ou modo demo identificado. */
-export function UserMenu({ user = null, organizationName = null, demoMode = false }: UserMenuProps) {
+export function UserMenu({
+  user = null,
+  organizationName = null,
+  demoMode = false,
+}: UserMenuProps) {
   const displayName = user?.name || user?.email || 'Utilizador Demo';
   const initials = (user?.name || user?.email || 'D')
     .split(/[\s@.]+/)

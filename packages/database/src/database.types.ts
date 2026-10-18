@@ -62,7 +62,8 @@ export interface Database {
       /** Eventos de fornecedor — imutáveis; escrita apenas via servidor (service role). */
       call_events: {
         Row: CallEvent;
-        Insert: Omit<CallEvent, 'id' | 'processedAt'> & Partial<Pick<CallEvent, 'id' | 'processedAt'>>;
+        Insert: Omit<CallEvent, 'id' | 'processedAt'> &
+          Partial<Pick<CallEvent, 'id' | 'processedAt'>>;
         Update: never;
         Relationships: [];
       };

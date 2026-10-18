@@ -21,11 +21,7 @@ const RUN_VARIANT: Record<string, 'success' | 'warning' | 'danger' | 'neutral'> 
 };
 
 /** Detalhe de workflow: edição autorizada + histórico de execuções reais. */
-export default async function WorkflowDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default async function WorkflowDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   if (!isSupabaseConfigured()) notFound();
 
@@ -35,7 +31,10 @@ export default async function WorkflowDetailPage({
 
   return (
     <div className="space-y-6">
-      <PageHeader title={workflow.name} description={workflow.description ?? 'Workflow de automação.'}>
+      <PageHeader
+        title={workflow.name}
+        description={workflow.description ?? 'Workflow de automação.'}
+      >
         <div className="flex items-center gap-2">
           <Badge variant={workflow.active ? 'success' : 'neutral'}>
             {workflow.active ? 'Ativo' : 'Inativo'}
@@ -75,7 +74,9 @@ export default async function WorkflowDetailPage({
         </CardHeader>
         <CardContent>
           {runs.length === 0 ? (
-            <p className="text-caption text-muted">Ainda sem execuções — os workflows disparam com eventos reais.</p>
+            <p className="text-caption text-muted">
+              Ainda sem execuções — os workflows disparam com eventos reais.
+            </p>
           ) : (
             <ul className="space-y-3">
               {runs.map((run) => (

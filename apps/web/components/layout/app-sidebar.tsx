@@ -112,7 +112,9 @@ export function AppSidebar({
 
         {!isCollapsed ? (
           <div className="m-4 rounded-lg border border-border bg-background p-3.5">
-            <p className="text-small font-semibold">{demoMode ? 'Utilizador Demo' : 'Sessão ativa'}</p>
+            <p className="text-small font-semibold">
+              {demoMode ? 'Utilizador Demo' : 'Sessão ativa'}
+            </p>
             <p className="text-caption text-muted">
               {demoMode ? 'demo@orbita.chat' : 'Autenticado via Supabase Auth'}
             </p>

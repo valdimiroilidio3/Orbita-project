@@ -1,8 +1,4 @@
-import {
-  sanitizeCallEventMetadata,
-  type CallEvent,
-  type CallLifecycleEvent,
-} from '@orbita/shared';
+import { sanitizeCallEventMetadata, type CallEvent, type CallLifecycleEvent } from '@orbita/shared';
 
 import type { VoiceErrorCode, VoiceIntegrationError } from '@/lib/voice/contracts';
 

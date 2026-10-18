@@ -18,11 +18,14 @@ import { ingestInboundCall } from '@/lib/voice/ingestion';
  * Sem fornecedor configurado → 503 explícito (nada é simulado).
  */
 
+import { log, newCorrelationId } from '@/lib/observability/logger';
+
 export const runtime = 'nodejs';
 
 const rateLimiter = new SlidingWindowRateLimiter(60, 60);
 
 export async function POST(request: NextRequest) {
+  const correlationId = request.headers.get('x-request-id') ?? newCorrelationId();
   const nowSeconds = Math.floor(Date.now() / 1000);
   const sourceIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? null;
 
@@ -45,8 +48,17 @@ export async function POST(request: NextRequest) {
   });
 
   if (!result.ok) {
+    log('warn', 'webhook.rejected', {
+      kind: 'inbound',
+      correlationId,
+      code: result.code,
+      sourceIp,
+    });
     const response = webhookErrorResponse(result.code, result.detail);
-    return NextResponse.json(response.body, { status: response.status });
+    return NextResponse.json(response.body, {
+      status: response.status,
+      headers: { 'x-request-id': correlationId },
+    });
   }
 
   if (result.parsed.kind !== 'inbound') {
@@ -60,13 +72,28 @@ export async function POST(request: NextRequest) {
   });
 
   if (!outcome.ok) {
+    log('error', 'webhook.persistence_failed', {
+      kind: 'inbound',
+      correlationId,
+      code: outcome.code,
+    });
     const response = webhookErrorResponse(outcome.code, outcome.detail);
-    return NextResponse.json(response.body, { status: response.status });
+    return NextResponse.json(response.body, {
+      status: response.status,
+      headers: { 'x-request-id': correlationId },
+    });
   }
 
-  // Resposta mínima — sem detalhes internos.
-  return NextResponse.json({
-    received: true,
+  log('info', 'webhook.processed', {
+    kind: 'inbound',
+    correlationId,
     outcome: outcome.kind,
+    callId: outcome.callId,
   });
+
+  // Resposta mínima — sem detalhes internos.
+  return NextResponse.json(
+    { received: true, outcome: outcome.kind },
+    { headers: { 'x-request-id': correlationId } },
+  );
 }

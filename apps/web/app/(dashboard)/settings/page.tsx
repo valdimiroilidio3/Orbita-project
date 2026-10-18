@@ -4,7 +4,10 @@ import { PageHeader } from '@/components/ui/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
-import { BusinessProfileForm, type BusinessProfileValues } from '@/components/tools/business-profile-form';
+import {
+  BusinessProfileForm,
+  type BusinessProfileValues,
+} from '@/components/tools/business-profile-form';
 import { VoiceDiagnosticsPanel } from '@/components/voice/voice-diagnostics';
 import { isSupabaseConfigured } from '@/lib/env';
 import { getBusinessProfile } from '@/lib/server/tools';
@@ -95,11 +98,11 @@ export default async function SettingsPage() {
         </CardHeader>
         <CardContent>
           {supabaseConfigured ? (
-            <BusinessProfileForm
-              values={profile}
-            />
+            <BusinessProfileForm values={profile} />
           ) : (
-            <p className="text-caption text-muted">Supabase não configurado — perfil indisponível.</p>
+            <p className="text-caption text-muted">
+              Supabase não configurado — perfil indisponível.
+            </p>
           )}
         </CardContent>
       </Card>

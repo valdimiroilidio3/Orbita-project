@@ -1,9 +1,6 @@
 import { AlertTriangle, AudioLines, CheckCircle2, Phone } from 'lucide-react';
 
-import {
-  VOICE_CONFIG_STATUS_LABELS,
-  voiceConfigStatus,
-} from '@/lib/voice/config';
+import { VOICE_CONFIG_STATUS_LABELS, voiceConfigStatus } from '@/lib/voice/config';
 import type { VoiceConfigInput } from '@orbita/shared';
 
 import { Badge } from '@/components/ui/badge';

@@ -33,7 +33,9 @@ const PROTECTED_PREFIXES = [
 const AUTH_PAGES = ['/login', '/register', '/forgot-password'];
 
 function isProtectedPath(pathname: string): boolean {
-  return PROTECTED_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
+  return PROTECTED_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
 }
 
 export async function middleware(request: NextRequest) {

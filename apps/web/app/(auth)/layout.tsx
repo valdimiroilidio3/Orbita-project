@@ -14,7 +14,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         {children}
       </div>
       <p className="mt-6 max-w-md text-center text-xs text-muted">
-        Autenticação segura com Supabase Auth — credenciais e tokens nunca são guardados na aplicação.
+        Autenticação segura com Supabase Auth — credenciais e tokens nunca são guardados na
+        aplicação.
       </p>
     </div>
   );

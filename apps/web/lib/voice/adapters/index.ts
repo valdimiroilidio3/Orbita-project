@@ -1,8 +1,5 @@
 import type { TelephonyProvider, VoiceProvider } from '@/lib/voice/contracts';
-import {
-  PendingTelephonyProvider,
-  PendingVoiceProvider,
-} from '@/lib/voice/adapters/pending';
+import { PendingTelephonyProvider, PendingVoiceProvider } from '@/lib/voice/adapters/pending';
 
 /**
  * Registo de adaptadores do motor de voz.

@@ -24,7 +24,15 @@ export default function NewWorkflowPage() {
               description: null,
               trigger: 'call.no_answer',
               active: true,
-              steps: [{ toolId: 'contact_request.create', args: { phone: '{{call.fromNumber}}', reason: 'Chamada não atendida — pedido de contacto automático' } }],
+              steps: [
+                {
+                  toolId: 'contact_request.create',
+                  args: {
+                    phone: '{{call.fromNumber}}',
+                    reason: 'Chamada não atendida — pedido de contacto automático',
+                  },
+                },
+              ],
               timeoutSeconds: 30,
             }}
           />

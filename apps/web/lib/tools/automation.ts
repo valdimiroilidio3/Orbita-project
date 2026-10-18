@@ -92,9 +92,19 @@ async function runWorkflow(
 
   if (runError) {
     if (isUniqueViolation(runError)) {
-      return { workflowId: workflow.id, runId: null, status: 'skipped', detail: 'Evento já processado para este workflow.' };
+      return {
+        workflowId: workflow.id,
+        runId: null,
+        status: 'skipped',
+        detail: 'Evento já processado para este workflow.',
+      };
     }
-    return { workflowId: workflow.id, runId: null, status: 'failed', detail: 'Não foi possível iniciar a execução.' };
+    return {
+      workflowId: workflow.id,
+      runId: null,
+      status: 'failed',
+      detail: 'Não foi possível iniciar a execução.',
+    };
   }
 
   const parsed = automationWorkflowSchema.safeParse({
@@ -106,8 +116,20 @@ async function runWorkflow(
   });
 
   if (!parsed.success) {
-    await finishRun(client, run.id, workflow.organization_id, 'failed', [], 'Definição de workflow inválida.');
-    return { workflowId: workflow.id, runId: run.id, status: 'failed', detail: 'Definição inválida.' };
+    await finishRun(
+      client,
+      run.id,
+      workflow.organization_id,
+      'failed',
+      [],
+      'Definição de workflow inválida.',
+    );
+    return {
+      workflowId: workflow.id,
+      runId: run.id,
+      status: 'failed',
+      detail: 'Definição inválida.',
+    };
   }
 
   const deadline = Date.now() + parsed.data.timeoutSeconds * 1000;
@@ -117,13 +139,21 @@ async function runWorkflow(
   for (const step of parsed.data.steps) {
     if (Date.now() > deadline) {
       status = 'timed_out';
-      stepsResult.push({ toolId: step.toolId, status: 'timed_out', message: 'Tempo limite do workflow excedido.' });
+      stepsResult.push({
+        toolId: step.toolId,
+        status: 'timed_out',
+        message: 'Tempo limite do workflow excedido.',
+      });
       break;
     }
 
     if (!isToolId(step.toolId)) {
       status = 'failed';
-      stepsResult.push({ toolId: step.toolId, status: 'not_found', message: 'Ferramenta desconhecida no passo.' });
+      stepsResult.push({
+        toolId: step.toolId,
+        status: 'not_found',
+        message: 'Ferramenta desconhecida no passo.',
+      });
       break;
     }
 
@@ -158,7 +188,12 @@ async function runWorkflow(
   }
 
   await finishRun(client, run.id, workflow.organization_id, status, stepsResult, null);
-  return { workflowId: workflow.id, runId: run.id, status, detail: `Passos executados: ${stepsResult.length}` };
+  return {
+    workflowId: workflow.id,
+    runId: run.id,
+    status,
+    detail: `Passos executados: ${stepsResult.length}`,
+  };
 }
 
 async function finishRun(

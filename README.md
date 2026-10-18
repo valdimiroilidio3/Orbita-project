@@ -85,12 +85,15 @@ psql "$DATABASE_URL" -f supabase/seed.sql   # opcional — dados de demonstraç�
 - ESLint + Prettier + typecheck estrito + Vitest + Playwright.
 - O workflow em `.github/workflows/ci.yml` corre lint, typecheck, testes unitários e build; erros impedem a conclusão do CI.
 
-## Limitações do protótipo (Sprint 1)
+## Estado de produção
 
-- Autenticação: ecrãs visuais (`/login`, `/forgot-password`) sem backend ligado.
-- Chamadas, contactos e integrações: sem dados reais; sem telefonia, IA ou billing.
-- Dados apresentados nos ecrãs são **de demonstração e identificados como tal**.
-- `apps/api` contém apenas um esqueleto; a regra de negócio virá na fase seguinte.
+Ver [`docs/production-readiness.md`](docs/production-readiness.md) (relatório com estados PASSOU/FALHOU/BLOQUEADO/NÃO VERIFICADO)
+e [`docs/known-limitations.md`](docs/known-limitations.md). Resumo honesto:
+
+- Lint, typecheck, 162 testes unitários, build e formatação: **passam**.
+- Autenticação Supabase, RLS e migrações: implementadas, **nunca aplicadas/executadas contra um Supabase real** neste repositório.
+- Sem chamadas telefónicas reais, sem voz IA ativa, sem billing. Dados de demonstração **sempre identificados como tal**.
+- `apps/api` contém apenas um esqueleto.
 
 ## Documentação
 
@@ -103,7 +106,13 @@ psql "$DATABASE_URL" -f supabase/seed.sql   # opcional — dados de demonstraç�
 - [`docs/voice-architecture.md`](docs/voice-architecture.md) — motor de voz IA: arquitetura e decisão técnica (Prompt 07)
 - [`docs/voice-setup.md`](docs/voice-setup.md) — configuração do motor de voz
 - [`docs/voice-security.md`](docs/voice-security.md) — segurança e privacidade do motor de voz
-- [`docs/voice-testing.md`, `docs/tools-architecture.md`, `docs/tool-security.md`, `docs/automation-workflows.md`, `docs/tool-integrations.md`, `docs/tool-testing.md`](docs/voice-testing.md) — testes do motor de voz
+- [`docs/voice-testing.md`](docs/voice-testing.md) — testes do motor de voz
+- [`docs/tools-architecture.md`](docs/tools-architecture.md), [`docs/tool-security.md`](docs/tool-security.md), [`docs/automation-workflows.md`](docs/automation-workflows.md), [`docs/tool-integrations.md`](docs/tool-integrations.md), [`docs/tool-testing.md`](docs/tool-testing.md) — ferramentas e automações (Prompt 08)
+- [`docs/deployment.md`](docs/deployment.md) — procedimento de deploy e checklist pós-deploy
+- [`docs/environment-variables.md`](docs/environment-variables.md) — todas as variáveis, âmbito e uso
+- [`docs/testing.md`](docs/testing.md) — comandos, cobertura e testes bloqueados
+- [`docs/known-limitations.md`](docs/known-limitations.md) — limitações conhecidas
+- [`docs/production-readiness.md`](docs/production-readiness.md) — relatório final de prontidão
 - [`docs/design-system.md`](docs/design-system.md) — design system (Fase 02)
 - [`docs/dashboard.md`](docs/dashboard.md) — dashboard e navegação (Fase 03)
 - [`docs/sprint-01.md`](docs/sprint-01.md) — briefing do sprint

@@ -118,14 +118,36 @@ const ctx = (organizationId = 'org-1', client?: never) => ({
 describe('esquemas de argumentos', () => {
   it('ferramenta: argumentos inválidos são rejeitados', () => {
     expect(businessInfoLookupArgsSchema.safeParse({ section: 'inexistente' }).success).toBe(false);
-    expect(availabilityCheckArgsSchema.safeParse({ service: 'Consulta', date: '18/10/2026', timezone: 'Europe/Lisbon', durationMinutes: 30 }).success).toBe(false);
-    expect(contactRequestCreateArgsSchema.safeParse({ phone: 'abc', reason: 'x' }).success).toBe(false);
-    expect(appointmentCreateArgsSchema.safeParse({ service: 'Corte', startsAt: 'não-data', timezone: 'Europe/Lisbon', durationMinutes: 30, customerPhone: '+351210000000' }).success).toBe(false);
+    expect(
+      availabilityCheckArgsSchema.safeParse({
+        service: 'Consulta',
+        date: '18/10/2026',
+        timezone: 'Europe/Lisbon',
+        durationMinutes: 30,
+      }).success,
+    ).toBe(false);
+    expect(contactRequestCreateArgsSchema.safeParse({ phone: 'abc', reason: 'x' }).success).toBe(
+      false,
+    );
+    expect(
+      appointmentCreateArgsSchema.safeParse({
+        service: 'Corte',
+        startsAt: 'não-data',
+        timezone: 'Europe/Lisbon',
+        durationMinutes: 30,
+        customerPhone: '+351210000000',
+      }).success,
+    ).toBe(false);
     expect(callTransferArgsSchema.safeParse({ destination: '+351910000000' }).success).toBe(false);
   });
 
   it('argumentos válidos são aceites', () => {
-    expect(contactRequestCreateArgsSchema.safeParse({ phone: '+351 210 000 000', reason: 'Ligar de volta' }).success).toBe(true);
+    expect(
+      contactRequestCreateArgsSchema.safeParse({
+        phone: '+351 210 000 000',
+        reason: 'Ligar de volta',
+      }).success,
+    ).toBe(true);
     expect(callTransferArgsSchema.safeParse({ destination: 'recepcao' }).success).toBe(true);
   });
 });
@@ -134,16 +156,10 @@ describe('esquemas de argumentos', () => {
 
 describe('handlers — ferramentas inexistentes/inativas e resultados', () => {
   it('business_info.lookup: not_found sem perfil; sucesso com secção', async () => {
-    const semPerfil = await handleBusinessInfoLookup(
-      ctx() as never,
-      {},
-      );
+    const semPerfil = await handleBusinessInfoLookup(ctx() as never, {});
     expect(semPerfil.status).toBe('not_found');
 
-    const comPerfil = await handleBusinessInfoLookup(
-      ctx() as never,
-      { section: 'hours' },
-    );
+    const comPerfil = await handleBusinessInfoLookup(ctx() as never, { section: 'hours' });
     // client vazio devolve null → not_found
     expect(comPerfil.status).toBe('not_found');
   });
@@ -153,7 +169,8 @@ describe('handlers — ferramentas inexistentes/inativas e resultados', () => {
       business_profiles: [
         {
           data: {
-            hours_text: 'seg:fechado; ter:fechado; qua:fechado; qui:fechado; sex:fechado; sab:fechado; dom:fechado',
+            hours_text:
+              'seg:fechado; ter:fechado; qua:fechado; qui:fechado; sex:fechado; sab:fechado; dom:fechado',
             services_text: 'Consulta | 30',
           },
         },
@@ -163,10 +180,12 @@ describe('handlers — ferramentas inexistentes/inativas e resultados', () => {
 
     const date = '2026-10-19'; // segunda-feira
     expect(weekdayOf(date)).toBe('seg');
-    const result = await handleAvailabilityCheck(
-      { ...ctx(), client } as never,
-      { service: 'Consulta', date, timezone: 'Europe/Lisbon', durationMinutes: 30 },
-    );
+    const result = await handleAvailabilityCheck({ ...ctx(), client } as never, {
+      service: 'Consulta',
+      date,
+      timezone: 'Europe/Lisbon',
+      durationMinutes: 30,
+    });
     expect(result.status).toBe('success');
     expect(result.data?.available).toBe('false');
   });
@@ -175,18 +194,22 @@ describe('handlers — ferramentas inexistentes/inativas e resultados', () => {
     const client = fakeClient({
       business_profiles: [{ error: { message: 'bd em baixo' } }],
     });
-    const result = await handleAvailabilityCheck(
-      { ...ctx(), client } as never,
-      { service: 'Consulta', date: '2026-10-19', timezone: 'Europe/Lisbon', durationMinutes: 30 },
-    );
+    const result = await handleAvailabilityCheck({ ...ctx(), client } as never, {
+      service: 'Consulta',
+      date: '2026-10-19',
+      timezone: 'Europe/Lisbon',
+      durationMinutes: 30,
+    });
     expect(result.status).toBe('internal_error');
   });
 
   it('availability.check: fuso horário inválido → validation_error', async () => {
-    const result = await handleAvailabilityCheck(
-      ctx() as never,
-      { service: 'Consulta', date: '2026-10-19', timezone: 'Marte/Olympus', durationMinutes: 30 },
-    );
+    const result = await handleAvailabilityCheck(ctx() as never, {
+      service: 'Consulta',
+      date: '2026-10-19',
+      timezone: 'Marte/Olympus',
+      durationMinutes: 30,
+    });
     expect(result.status).toBe('validation_error');
   });
 
@@ -214,7 +237,9 @@ describe('handlers — ferramentas inexistentes/inativas e resultados', () => {
 
   it('appointment.create: conflito de horário não é sucesso; falha do adaptador comunicada', async () => {
     const client = fakeClient({
-      business_profiles: [{ data: { hours_text: 'seg:09:00-18:00', services_text: 'Consulta | 30' } }],
+      business_profiles: [
+        { data: { hours_text: 'seg:09:00-18:00', services_text: 'Consulta | 30' } },
+      ],
       appointments: [{ data: { id: 'ja-existe' } }],
     });
     const conflict = await handleAppointmentCreate(
@@ -368,7 +393,13 @@ describe('idempotência e executor', () => {
   it('ferramenta inexistente → not_found sem execução', async () => {
     mockService.client = fakeClient({});
     const result = await executeTool({
-      context: { organizationId: 'org-1', agentId: null, callId: null, actorUserId: null, fromWorkflow: false },
+      context: {
+        organizationId: 'org-1',
+        agentId: null,
+        callId: null,
+        actorUserId: null,
+        fromWorkflow: false,
+      },
       toolId: 'shell.run',
       rawArgs: {},
     });
@@ -379,7 +410,13 @@ describe('idempotência e executor', () => {
   it('argumentos inválidos → validation_error sem execução', async () => {
     mockService.client = fakeClient({});
     const result = await executeTool({
-      context: { organizationId: 'org-1', agentId: null, callId: null, actorUserId: null, fromWorkflow: false },
+      context: {
+        organizationId: 'org-1',
+        agentId: null,
+        callId: null,
+        actorUserId: null,
+        fromWorkflow: false,
+      },
       toolId: 'contact_request.create',
       rawArgs: { phone: '', reason: '' },
     });
@@ -393,7 +430,13 @@ describe('idempotência e executor', () => {
       agent_tools: [{ data: null }],
     });
     const result = await executeTool({
-      context: { organizationId: 'org-1', agentId: 'agent-1', callId: null, actorUserId: null, fromWorkflow: false },
+      context: {
+        organizationId: 'org-1',
+        agentId: 'agent-1',
+        callId: null,
+        actorUserId: null,
+        fromWorkflow: false,
+      },
       toolId: 'contact_request.create',
       rawArgs: { phone: '+351 210 000 000', reason: 'Teste' },
     });
@@ -406,7 +449,13 @@ describe('idempotência e executor', () => {
       agent_tools: [{ data: { enabled: false, config: {} } }],
     });
     const result = await executeTool({
-      context: { organizationId: 'org-1', agentId: 'agent-1', callId: null, actorUserId: null, fromWorkflow: false },
+      context: {
+        organizationId: 'org-1',
+        agentId: 'agent-1',
+        callId: null,
+        actorUserId: null,
+        fromWorkflow: false,
+      },
       toolId: 'business_info.lookup',
       rawArgs: {},
     });
@@ -420,7 +469,13 @@ describe('idempotência e executor', () => {
       contact_requests: [{ data: null }, { data: { id: 'req-9' } }],
     });
     const result = await executeTool({
-      context: { organizationId: 'org-1', agentId: null, callId: null, actorUserId: 'user-1', fromWorkflow: false },
+      context: {
+        organizationId: 'org-1',
+        agentId: null,
+        callId: null,
+        actorUserId: 'user-1',
+        fromWorkflow: false,
+      },
       toolId: 'contact_request.create',
       rawArgs: { phone: '+351 210 000 000', reason: 'Pedido via executor' },
     });
@@ -466,7 +521,13 @@ describe('idempotência e executor', () => {
   it('sem persistência privilegiada → internal_error honesto', async () => {
     mockService.client = null;
     const result = await executeTool({
-      context: { organizationId: 'org-1', agentId: null, callId: null, actorUserId: null, fromWorkflow: false },
+      context: {
+        organizationId: 'org-1',
+        agentId: null,
+        callId: null,
+        actorUserId: null,
+        fromWorkflow: false,
+      },
       toolId: 'business_info.lookup',
       rawArgs: {},
     });

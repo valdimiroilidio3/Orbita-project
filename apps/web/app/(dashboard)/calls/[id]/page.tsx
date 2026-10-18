@@ -60,7 +60,10 @@ export default async function CallDetailPage({
         message: NOTICE_BY_ERROR[query.error] ?? 'Ocorreu um erro. Tenta novamente.',
       }
     : query.started
-      ? { type: 'success' as const, message: 'Chamada iniciada (simulada). Termina quando quiseres.' }
+      ? {
+          type: 'success' as const,
+          message: 'Chamada iniciada (simulada). Termina quando quiseres.',
+        }
       : query.status === 'updated'
         ? { type: 'success' as const, message: 'Chamada atualizada.' }
         : null;
@@ -71,7 +74,10 @@ export default async function CallDetailPage({
 
     return (
       <div className="space-y-6">
-        <PageHeader title={`Chamada ${demo.toNumber ?? ''}`.trim()} description="Chamada de demonstração — leitura apenas.">
+        <PageHeader
+          title={`Chamada ${demo.toNumber ?? ''}`.trim()}
+          description="Chamada de demonstração — leitura apenas."
+        >
           <StatusBadge status={demo.status} kind="call" />
         </PageHeader>
 
@@ -84,13 +90,24 @@ export default async function CallDetailPage({
           <CardContent>
             <dl>
               <DetailRow label="Direção" value={CALL_DIRECTION_LABELS[demo.direction]} />
-              <DetailRow label="Agente" value={<span className="inline-flex items-center gap-2">{demo.agentName}<Badge variant="accent">Demo</Badge></span>} />
+              <DetailRow
+                label="Agente"
+                value={
+                  <span className="inline-flex items-center gap-2">
+                    {demo.agentName}
+                    <Badge variant="accent">Demo</Badge>
+                  </span>
+                }
+              />
               <DetailRow label="Destino" value={demo.toNumber ?? '—'} />
               <DetailRow label="Origem" value={demo.fromNumber ?? '—'} />
               <DetailRow label="Estado" value={CALL_STATUS_LABELS[demo.status]} />
               <DetailRow label="Início" value={formatDateTime(demo.startedAt)} />
               <DetailRow label="Duração" value={formatDuration(demo.durationSeconds)} />
-              <DetailRow label="Custo estimado" value={formatCurrency(demo.estimatedCost, demo.currency)} />
+              <DetailRow
+                label="Custo estimado"
+                value={formatCurrency(demo.estimatedCost, demo.currency)}
+              />
             </dl>
           </CardContent>
         </Card>
@@ -158,12 +175,18 @@ export default async function CallDetailPage({
             <DetailRow label="Origem" value={call.fromNumber ?? '—'} />
             <DetailRow label="Estado" value={CALL_STATUS_LABELS[call.status]} />
             <DetailRow label="Fornecedor" value={call.provider ?? '—'} />
-            <DetailRow label="ID do fornecedor" value={<span className="font-mono text-caption">{call.providerCallId ?? '—'}</span>} />
+            <DetailRow
+              label="ID do fornecedor"
+              value={<span className="font-mono text-caption">{call.providerCallId ?? '—'}</span>}
+            />
             <DetailRow label="Início" value={formatDateTime(call.startedAt)} />
             <DetailRow label="Atendimento" value={formatDateTime(call.answeredAt)} />
             <DetailRow label="Fim" value={formatDateTime(call.endedAt)} />
             <DetailRow label="Duração" value={formatDuration(call.durationSeconds)} />
-            <DetailRow label="Custo estimado" value={formatCurrency(call.estimatedCost, call.currency)} />
+            <DetailRow
+              label="Custo estimado"
+              value={formatCurrency(call.estimatedCost, call.currency)}
+            />
             <DetailRow
               label="Sessão de voz"
               value={
@@ -206,7 +229,9 @@ export default async function CallDetailPage({
         </CardHeader>
         <CardContent>
           {toolExecutions.length === 0 ? (
-            <p className="text-caption text-muted">Sem ações de ferramentas associadas a esta chamada.</p>
+            <p className="text-caption text-muted">
+              Sem ações de ferramentas associadas a esta chamada.
+            </p>
           ) : (
             <ul className="space-y-2">
               {toolExecutions.map((execution) => (
@@ -226,7 +251,15 @@ export default async function CallDetailPage({
                       {execution.status === 'awaiting_approval' ? ' · a aguardar aprovação' : ''}
                     </p>
                   </div>
-                  <Badge variant={execution.status === 'succeeded' ? 'success' : execution.status === 'awaiting_approval' ? 'warning' : 'outline'}>
+                  <Badge
+                    variant={
+                      execution.status === 'succeeded'
+                        ? 'success'
+                        : execution.status === 'awaiting_approval'
+                          ? 'warning'
+                          : 'outline'
+                    }
+                  >
                     {execution.status}
                   </Badge>
                 </li>

@@ -8,6 +8,7 @@ import {
   formatCurrency,
   formatDateTime,
   formatDuration,
+  maskPhoneNumber,
 } from '@orbita/shared';
 
 import { Badge } from '@/components/ui/badge';
@@ -66,7 +67,11 @@ export function CallsTable({
     {
       key: 'to',
       header: 'Destino',
-      cell: (call) => <span className="font-medium">{call.toNumber ?? '—'}</span>,
+      cell: (call) => (
+        <span className="font-medium" title="Número mascarado na listagem — completo no detalhe">
+          {maskPhoneNumber(call.toNumber)}
+        </span>
+      ),
     },
     {
       key: 'agent',
@@ -114,7 +119,7 @@ export function CallsTable({
         <Link
           href={`/calls/${call.id}`}
           className="text-small font-medium text-primary hover:underline"
-          aria-label={`Ver detalhe da chamada ${call.toNumber ?? call.id}`}
+          aria-label={`Ver detalhe da chamada ${maskPhoneNumber(call.toNumber)}`}
         >
           Ver
         </Link>

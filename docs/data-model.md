@@ -17,54 +17,54 @@ organizations 1 ─── * memberships * ─── 1 (auth.users)
 
 ### `organizations`
 
-| Coluna | Tipo | Notas |
-| --- | --- | --- |
-| `id` | uuid PK | `gen_random_uuid()` |
-| `name` | text | 1..120 (validado no servidor) |
-| `slug` | text | `unique`; `[a-z0-9-]`, 3..48 (validado em Zod e no RPC) |
-| `created_at` / `updated_at` | timestamptz | `updated_at` via trigger |
+| Coluna                      | Tipo        | Notas                                                   |
+| --------------------------- | ----------- | ------------------------------------------------------- |
+| `id`                        | uuid PK     | `gen_random_uuid()`                                     |
+| `name`                      | text        | 1..120 (validado no servidor)                           |
+| `slug`                      | text        | `unique`; `[a-z0-9-]`, 3..48 (validado em Zod e no RPC) |
+| `created_at` / `updated_at` | timestamptz | `updated_at` via trigger                                |
 
 ### `memberships`
 
-| Coluna | Tipo | Notas |
-| --- | --- | --- |
+| Coluna                        | Tipo        | Notas                                                           |
+| ----------------------------- | ----------- | --------------------------------------------------------------- |
 | `organization_id` + `user_id` | PK composta | unicidade garantida; um utilizador pode ter várias organizações |
-| `role` | enum | `owner` \| `admin` \| `member` |
-| `created_at` | timestamptz | |
+| `role`                        | enum        | `owner` \| `admin` \| `member`                                  |
+| `created_at`                  | timestamptz |                                                                 |
 
 Proteções (trigger `memberships_guard`): role não auto-atribuída; só owner atribui/altera owners; **último owner nunca é removido**; organização/utilizador imutáveis. INSERT direto negado (só via RPC `create_organization`).
 
 ### `agents`
 
-| Coluna | Tipo | Notas |
-| --- | --- | --- |
-| `id` | uuid PK | `unique (organization_id, id)` para FK composta de `calls` |
-| `organization_id` | uuid FK | imutável (trigger anti-transferência) |
-| `name` | text | 1..120 |
-| `description` | text | nullable |
-| `instructions` | text | max 20 000 (CHECK) |
-| `language` | text | default `pt-PT` |
-| `status` | enum | `draft` \| `active` \| `paused` \| `archived` — transições validadas no servidor (`AGENT_STATUS_TRANSITIONS`) |
-| `voice_config` | jsonb | apenas campos estruturados (`voiceId`, `speed`, `pitch`, `greeting`, `style`) via `voiceConfigSchema` strict; **nunca segredos de fornecedores** |
-| `created_by` | uuid FK → auth.users | `on delete set null`; INSERT exige `= auth.uid()` |
-| `created_at` / `updated_at` | timestamptz | `updated_at` via trigger |
+| Coluna                      | Tipo                 | Notas                                                                                                                                            |
+| --------------------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `id`                        | uuid PK              | `unique (organization_id, id)` para FK composta de `calls`                                                                                       |
+| `organization_id`           | uuid FK              | imutável (trigger anti-transferência)                                                                                                            |
+| `name`                      | text                 | 1..120                                                                                                                                           |
+| `description`               | text                 | nullable                                                                                                                                         |
+| `instructions`              | text                 | max 20 000 (CHECK)                                                                                                                               |
+| `language`                  | text                 | default `pt-PT`                                                                                                                                  |
+| `status`                    | enum                 | `draft` \| `active` \| `paused` \| `archived` — transições validadas no servidor (`AGENT_STATUS_TRANSITIONS`)                                    |
+| `voice_config`              | jsonb                | apenas campos estruturados (`voiceId`, `speed`, `pitch`, `greeting`, `style`) via `voiceConfigSchema` strict; **nunca segredos de fornecedores** |
+| `created_by`                | uuid FK → auth.users | `on delete set null`; INSERT exige `= auth.uid()`                                                                                                |
+| `created_at` / `updated_at` | timestamptz          | `updated_at` via trigger                                                                                                                         |
 
 ### `calls`
 
-| Coluna | Tipo | Notas |
-| --- | --- | --- |
-| `id` | uuid PK | |
-| `organization_id` | uuid FK | imutável (trigger anti-transferência) |
-| `agent_id` | uuid | FK composta `(organization_id, agent_id)` → agents, `on delete set null` — **histórico retido** se o agente for eliminado |
-| `direction` | enum | `inbound` \| `outbound` |
-| `status` | enum | `queued` … `transferred`; estados terminais não transitam (trigger) |
-| `from_number` / `to_number` | text | privados — expostos apenas a membros via RLS |
-| `started_at` / `ended_at` | timestamptz | `started_at <= ended_at` (CHECK) |
-| `duration_seconds` | integer | `>= 0` |
-| `estimated_cost` | numeric(12,6) | `>= 0` |
-| `currency` | char(3) | default `EUR` |
-| `provider` / `provider_call_id` | text | `unique (organization_id, provider, provider_call_id)` |
-| `created_at` / `updated_at` | timestamptz | `updated_at` via trigger |
+| Coluna                          | Tipo          | Notas                                                                                                                     |
+| ------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `id`                            | uuid PK       |                                                                                                                           |
+| `organization_id`               | uuid FK       | imutável (trigger anti-transferência)                                                                                     |
+| `agent_id`                      | uuid          | FK composta `(organization_id, agent_id)` → agents, `on delete set null` — **histórico retido** se o agente for eliminado |
+| `direction`                     | enum          | `inbound` \| `outbound`                                                                                                   |
+| `status`                        | enum          | `queued` … `transferred`; estados terminais não transitam (trigger)                                                       |
+| `from_number` / `to_number`     | text          | privados — expostos apenas a membros via RLS                                                                              |
+| `started_at` / `ended_at`       | timestamptz   | `started_at <= ended_at` (CHECK)                                                                                          |
+| `duration_seconds`              | integer       | `>= 0`                                                                                                                    |
+| `estimated_cost`                | numeric(12,6) | `>= 0`                                                                                                                    |
+| `currency`                      | char(3)       | default `EUR`                                                                                                             |
+| `provider` / `provider_call_id` | text          | `unique (organization_id, provider, provider_call_id)`                                                                    |
+| `created_at` / `updated_at`     | timestamptz   | `updated_at` via trigger                                                                                                  |
 
 **Retenção**: não existe política DELETE em `calls` — membros não conseguem
 apagar histórico operacional/financeiro.
@@ -105,7 +105,6 @@ membership, `updated_at` por trigger.
   por cliente** (ingestão no servidor — docs/voice-security.md).
 - ⚠️ Migração criada no repositório; **não aplicada** a nenhuma instância
   Supabase neste ambiente.
-
 
 ## Ferramentas e automações (migração 0005 — Prompt 08)
 

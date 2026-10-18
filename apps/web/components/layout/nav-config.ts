@@ -75,7 +75,7 @@ export const NAV_ITEMS: NavItem[] = [
     href: '/analytics',
     label: 'Analytics',
     icon: BarChart3,
-    status: 'upcoming',
+    status: 'available',
     description: 'Relatórios avançados',
   },
   {
@@ -89,7 +89,7 @@ export const NAV_ITEMS: NavItem[] = [
     href: '/billing',
     label: 'Billing',
     icon: CreditCard,
-    status: 'upcoming',
+    status: 'available',
     description: 'Plano e faturação',
   },
   {

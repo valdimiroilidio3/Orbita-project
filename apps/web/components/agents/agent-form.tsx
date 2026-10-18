@@ -48,9 +48,7 @@ export function AgentForm(props: AgentFormProps) {
   );
 
   const [language, setLanguage] = useState(initial?.language ?? 'pt-PT');
-  const [instructionsLength, setInstructionsLength] = useState(
-    initial?.instructions.length ?? 0,
-  );
+  const [instructionsLength, setInstructionsLength] = useState(initial?.instructions.length ?? 0);
 
   const voice: VoiceConfigInput = initial?.voiceConfig ?? {};
 
@@ -74,7 +72,10 @@ export function AgentForm(props: AgentFormProps) {
         )}
       </FormField>
 
-      <FormField label="Descrição" hint="Opcional — resumo do papel do agente (máx. 2000 caracteres).">
+      <FormField
+        label="Descrição"
+        hint="Opcional — resumo do papel do agente (máx. 2000 caracteres)."
+      >
         {({ id, describedBy }) => (
           <Textarea
             id={id}
@@ -142,7 +143,10 @@ export function AgentForm(props: AgentFormProps) {
         </p>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <FormField label="Identificador de voz" hint="Opcional — voz do fornecedor (sem segredos).">
+          <FormField
+            label="Identificador de voz"
+            hint="Opcional — voz do fornecedor (sem segredos)."
+          >
             {({ id, describedBy }) => (
               <Input
                 id={id}
@@ -203,7 +207,10 @@ export function AgentForm(props: AgentFormProps) {
           </FormField>
         </div>
 
-        <FormField label="Saudação inicial" hint="Opcional — primeira frase do agente (máx. 500 caracteres).">
+        <FormField
+          label="Saudação inicial"
+          hint="Opcional — primeira frase do agente (máx. 500 caracteres)."
+        >
           {({ id, describedBy }) => (
             <Input
               id={id}

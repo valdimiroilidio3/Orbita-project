@@ -1,6 +1,8 @@
 # ORBITA CHAT — Arquitetura
 
-> Estado atual: **fundação (Sprint 1)**. Nenhuma integração externa está ativa.
+> Estado atual (2026-10-18): aplicação Next.js completa com autenticação Supabase, Agent Studio, Calls Center,
+> motor de voz (pendente de fornecedor), ferramentas/automações, integrações com estado real, analytics e billing
+> informativo. **Nenhuma integração externa paga está ativa.** Ver `docs/production-readiness.md`.
 
 ## Visão geral
 
@@ -48,6 +50,19 @@ No Sprint 1 **não existem chamadas reais, IA, telefonia ou billing**. Os ecrãs
 - Identidade sempre via `auth.uid()`; criação de organizações via RPC transacional.
 - Autenticação Supabase Auth com SSR (cookies httpOnly) — ver [`docs/authentication.md`](authentication.md).
 - A API de serviço (futura) valida a organização do utilizador em cada operação.
+
+## Camadas do servidor (`apps/web`)
+
+```
+app/(dashboard)/*        páginas (server components, force-dynamic quando há dados por utilizador)
+lib/server/*             leitura + server actions (requireUser → getActiveOrganization → papel → Zod → Supabase)
+lib/voice/*, lib/tools/* motores puros + adaptadores (fail-closed sem credenciais)
+lib/integrations/status  estado real de cada integração (usado por /integrations e /api/health)
+lib/observability/logger logs JSON com correlationId e redação de chaves sensíveis
+app/api/*                health e webhooks (runtime nodejs; HMAC; service role apenas aqui e no executor)
+```
+
+Headers de segurança e CSP são definidos em `next.config.ts` (build-time).
 
 ## Frontend (`apps/web`)
 

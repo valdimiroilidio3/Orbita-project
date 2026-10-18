@@ -23,8 +23,7 @@ export interface ApprovalDecisionInput {
 }
 
 export type ApprovalDecisionResult =
-  | { ok: true }
-  | { ok: false; reason: 'unauthorized' | 'expired' | 'not_pending' | 'mismatch' };
+  { ok: true } | { ok: false; reason: 'unauthorized' | 'expired' | 'not_pending' | 'mismatch' };
 
 export function evaluateApprovalDecision(input: ApprovalDecisionInput): ApprovalDecisionResult {
   if (input.actorRole !== 'owner' && input.actorRole !== 'admin') {

@@ -9,20 +9,20 @@ Copia `apps/web/.env.example` para `apps/web/.env.local` e preenche apenas as
 secções que fores ativar. Os valores ausentes produzem o estado explícito
 **«Não configurado»** — a aplicação continua a funcionar nas restantes áreas.
 
-| Variável | Onde obter | Para que serve | Ambiente |
-| --- | --- | --- | --- |
-| `VOICE_PROVIDER` | — | Seleção: `pending` \| `openai-realtime` \| `twilio` | servidor |
-| `TELEPHONY_PROVIDER` | — | Seleção: `pending` \| `sip` \| `twilio` | servidor |
-| `OPENAI_API_KEY` | platform.openai.com → API keys | Sessões de voz em tempo real | servidor |
-| `OPENAI_WEBHOOK_SECRET` | Painel de webhooks OpenAI | Assinatura de webhooks de voz | servidor |
-| `TELEPHONY_WEBHOOK_SECRET` | Definido por ti + painel do fornecedor | Assinatura de webhooks telefónicos | servidor |
-| `TWILIO_ACCOUNT_SID` / `TWILIO_AUTH_TOKEN` / `TWILIO_PHONE_NUMBER` | console.twilio.com | Telefonia (apenas `TELEPHONY_PROVIDER=twilio`) | servidor |
-| `PUBLIC_WEBHOOK_BASE_URL` | Infraestrutura de deploy | URL pública dos webhooks | servidor |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Settings → API | **Apenas** ingestão de webhooks no servidor | servidor |
-| `VOICE_CALL_MAX_DURATION_SECONDS` | política tua | Limite de duração (default 3600) | servidor |
-| `VOICE_CALL_TRANSIENT_TIMEOUT_MIN` | política tua | Reconciliação de chamadas pendentes (default 30) | servidor |
-| `VOICE_WEBHOOK_MAX_PAYLOAD_BYTES` | conforme fornecedor | Limite de payload (default 65536) | servidor |
-| `VOICE_WEBHOOK_REPLAY_WINDOW_SECONDS` | conforme fornecedor | Janela anti-replay (default 300) | servidor |
+| Variável                                                           | Onde obter                             | Para que serve                                      | Ambiente |
+| ------------------------------------------------------------------ | -------------------------------------- | --------------------------------------------------- | -------- |
+| `VOICE_PROVIDER`                                                   | —                                      | Seleção: `pending` \| `openai-realtime` \| `twilio` | servidor |
+| `TELEPHONY_PROVIDER`                                               | —                                      | Seleção: `pending` \| `sip` \| `twilio`             | servidor |
+| `OPENAI_API_KEY`                                                   | platform.openai.com → API keys         | Sessões de voz em tempo real                        | servidor |
+| `OPENAI_WEBHOOK_SECRET`                                            | Painel de webhooks OpenAI              | Assinatura de webhooks de voz                       | servidor |
+| `TELEPHONY_WEBHOOK_SECRET`                                         | Definido por ti + painel do fornecedor | Assinatura de webhooks telefónicos                  | servidor |
+| `TWILIO_ACCOUNT_SID` / `TWILIO_AUTH_TOKEN` / `TWILIO_PHONE_NUMBER` | console.twilio.com                     | Telefonia (apenas `TELEPHONY_PROVIDER=twilio`)      | servidor |
+| `PUBLIC_WEBHOOK_BASE_URL`                                          | Infraestrutura de deploy               | URL pública dos webhooks                            | servidor |
+| `SUPABASE_SERVICE_ROLE_KEY`                                        | Supabase → Settings → API              | **Apenas** ingestão de webhooks no servidor         | servidor |
+| `VOICE_CALL_MAX_DURATION_SECONDS`                                  | política tua                           | Limite de duração (default 3600)                    | servidor |
+| `VOICE_CALL_TRANSIENT_TIMEOUT_MIN`                                 | política tua                           | Reconciliação de chamadas pendentes (default 30)    | servidor |
+| `VOICE_WEBHOOK_MAX_PAYLOAD_BYTES`                                  | conforme fornecedor                    | Limite de payload (default 65536)                   | servidor |
+| `VOICE_WEBHOOK_REPLAY_WINDOW_SECONDS`                              | conforme fornecedor                    | Janela anti-replay (default 300)                    | servidor |
 
 **Nunca** `NEXT_PUBLIC_` em segredos. **Nunca** valores fictícios que pareçam funcionais.
 
@@ -69,13 +69,13 @@ pnpm dev
 
 ## 6. Diagnóstico de falhas
 
-| Sintoma | Causa provável | Ação |
-| --- | --- | --- |
-| Webhook responde 503 | Fornecedor/`SUPABASE_SERVICE_ROLE_KEY` por configurar | Ver variáveis |
-| Webhook responde 401 | Assinatura/segredo errados ou corpo re-serializado | Comparar segredo e raw body |
-| Webhook responde 409 | Replay/janela de tempo | Ver relógio e reenvio |
-| Chamada fica «em curso» | Estado final nunca chegou | Reconciliação por timeout (documentada) |
-| Agente recusa sessão | Pausado/arquivado/sem voz | Agent Studio → secção Voz e telefonia |
+| Sintoma                 | Causa provável                                        | Ação                                    |
+| ----------------------- | ----------------------------------------------------- | --------------------------------------- |
+| Webhook responde 503    | Fornecedor/`SUPABASE_SERVICE_ROLE_KEY` por configurar | Ver variáveis                           |
+| Webhook responde 401    | Assinatura/segredo errados ou corpo re-serializado    | Comparar segredo e raw body             |
+| Webhook responde 409    | Replay/janela de tempo                                | Ver relógio e reenvio                   |
+| Chamada fica «em curso» | Estado final nunca chegou                             | Reconciliação por timeout (documentada) |
+| Agente recusa sessão    | Pausado/arquivado/sem voz                             | Agent Studio → secção Voz e telefonia   |
 
 ## 7. Custos e configuração de conta
 

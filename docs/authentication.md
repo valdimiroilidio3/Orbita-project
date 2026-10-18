@@ -19,15 +19,15 @@ Browser ──> Next.js (middleware atualiza sessão) ──> Supabase Auth
 
 ## 2. Páginas e rotas
 
-| Rota | Função |
-| --- | --- |
-| `/login` | `signInWithPassword` — erro genérico («Credenciais inválidas»), sem revelar emails registados |
-| `/register` | `signUp` — mensagem genérica de confirmação de email (anti-enumeración) |
-| `/forgot-password` | `resetPasswordForEmail` — resposta sempre igual, com ou sem conta |
-| `/reset-password` | `updateUser` (via sessão de recuperação) |
-| `/auth/callback` | troca `code` por sessão (links de email/OAuth) — proteção contra open redirect |
-| `/auth/confirm` | `verifyOtp` (token_hash) para os templates de email do Supabase |
-| Logout | server action `signOutAction` (menu de utilizador) |
+| Rota               | Função                                                                                        |
+| ------------------ | --------------------------------------------------------------------------------------------- |
+| `/login`           | `signInWithPassword` — erro genérico («Credenciais inválidas»), sem revelar emails registados |
+| `/register`        | `signUp` — mensagem genérica de confirmação de email (anti-enumeración)                       |
+| `/forgot-password` | `resetPasswordForEmail` — resposta sempre igual, com ou sem conta                             |
+| `/reset-password`  | `updateUser` (via sessão de recuperação)                                                      |
+| `/auth/callback`   | troca `code` por sessão (links de email/OAuth) — proteção contra open redirect                |
+| `/auth/confirm`    | `verifyOtp` (token_hash) para os templates de email do Supabase                               |
+| Logout             | server action `signOutAction` (menu de utilizador)                                            |
 
 Com o Supabase **não configurado**, nenhuma autenticação é simulada: os
 formulários mostram instruções de configuração e o dashboard corre em modo de
@@ -37,7 +37,7 @@ demonstração identificado.
 
 1. Após autenticação sem memberships → `/onboarding`.
 2. Criação via RPC transacional `create_organization` (validação Zod no servidor
-   + validação SQL; owner = `auth.uid()`; atomicidade garantida).
+   - validação SQL; owner = `auth.uid()`; atomicidade garantida).
 3. Organização ativa guardada em cookie `orbita_active_org` (httpOnly) como
    **preferência**; validada no servidor em cada request contra as memberships
    (query RLS). Manipular o cookie não concede acesso — o RLS é a autoridade.

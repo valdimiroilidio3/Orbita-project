@@ -1,8 +1,4 @@
-import type {
-  CallLifecycleEvent,
-  CallStatus,
-  VoiceConfigInput,
-} from '@orbita/shared';
+import type { CallLifecycleEvent, CallStatus, VoiceConfigInput } from '@orbita/shared';
 
 /**
  * Contratos do motor de voz (PROMPT 07 §4).

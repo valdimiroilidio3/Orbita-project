@@ -6,6 +6,7 @@ import {
   formatDateTime,
   formatDuration,
   formatInteger,
+  maskPhoneNumber,
 } from './format';
 
 describe('formatDuration', () => {
@@ -67,5 +68,16 @@ describe('formatInteger', () => {
 
   it('devolve "—" para valores ausentes', () => {
     expect(formatInteger(null)).toBe('—');
+  });
+});
+
+describe('maskPhoneNumber', () => {
+  it('mascara números internacionais mantendo prefixo e últimos 3 dígitos', () => {
+    expect(maskPhoneNumber('+351 912 345 678')).toBe('+351 ••••••678');
+    expect(maskPhoneNumber('+351912345678')).toBe('+351 ••••••678');
+  });
+  it('não mascara valores curtos e trata vazio', () => {
+    expect(maskPhoneNumber('12345')).toBe('12345');
+    expect(maskPhoneNumber(null)).toBe('—');
   });
 });

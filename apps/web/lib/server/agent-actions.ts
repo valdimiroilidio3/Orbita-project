@@ -53,9 +53,9 @@ function emptyToUndefined(value: FormDataEntryValue | null): string | undefined 
  * Rejeita números inválidos; campos vazios são omitidos; chaves de segredo
  * são impossíveis — o objeto é montado apenas com campos conhecidos.
  */
-function parseVoiceConfigFields(formData: FormData):
-  | { ok: true; value: VoiceConfigInput }
-  | { ok: false; error: string } {
+function parseVoiceConfigFields(
+  formData: FormData,
+): { ok: true; value: VoiceConfigInput } | { ok: false; error: string } {
   const voiceId = emptyToUndefined(formData.get('voiceId'));
   const greeting = emptyToUndefined(formData.get('greeting'));
   const style = emptyToUndefined(formData.get('style'));
@@ -121,7 +121,10 @@ export async function createAgentAction(
     .single();
 
   if (error || !data) {
-    return { error: `Não foi possível criar o agente: ${error?.message ?? 'erro desconhecido'}`, success: null };
+    return {
+      error: `Não foi possível criar o agente: ${error?.message ?? 'erro desconhecido'}`,
+      success: null,
+    };
   }
 
   redirect(`/agents/${data.id}?created=1`);
@@ -234,4 +237,47 @@ export async function deleteAgentAction(formData: FormData): Promise<void> {
     .eq('organization_id', organization.id);
 
   redirect(error ? `/agents/${id}?error=eliminacao_falhou` : '/agents?deleted=1');
+}
+
+/**
+ * Duplica um agente da organização ativa: cópia em estado `draft`, sem o
+ * número de entrada (único por organização) e com sufixo «(cópia)».
+ * Autorização: membro da organização (mesma regra da criação).
+ */
+export async function duplicateAgentAction(formData: FormData): Promise<void> {
+  const id = String(formData.get('id') ?? '');
+  if (!isSupabaseConfigured()) redirect(`/agents/${id}?error=nao_configurado`);
+
+  const user = await requireUser();
+  const organization = await getActiveOrganization();
+  if (!organization) redirect('/onboarding');
+
+  const supabase = await createSupabaseServerClient();
+  const { data: source } = await supabase
+    .from('agents')
+    .select('name, description, instructions, language, voice_config')
+    .eq('id', id)
+    .eq('organization_id', organization.id)
+    .maybeSingle();
+
+  if (!source) redirect(`/agents/${id}?error=nao_encontrado`);
+
+  const { data, error } = await supabase
+    .from('agents')
+    .insert({
+      organization_id: organization.id,
+      created_by: user.id,
+      name: `${source.name} (cópia)`.slice(0, 80),
+      description: source.description,
+      instructions: source.instructions,
+      language: source.language,
+      status: 'draft',
+      voice_config: source.voice_config,
+      inbound_phone_number: null,
+    })
+    .select('id')
+    .single();
+
+  if (error || !data) redirect(`/agents/${id}?error=duplicacao_falhou`);
+  redirect(`/agents/${data.id}?duplicated=1`);
 }

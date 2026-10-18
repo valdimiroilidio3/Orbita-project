@@ -150,13 +150,19 @@ export function WorkflowForm({ values }: { values: WorkflowFormValues }) {
       </p>
 
       {state.error ? (
-        <p role="alert" className="rounded-lg border border-danger/40 bg-danger-soft px-3.5 py-2.5 text-caption text-danger-text">
+        <p
+          role="alert"
+          className="rounded-lg border border-danger/40 bg-danger-soft px-3.5 py-2.5 text-caption text-danger-text"
+        >
           <AlertCircle className="mr-1 inline h-4 w-4 align-middle" aria-hidden />
           {state.error}
         </p>
       ) : null}
       {state.success ? (
-        <p role="status" className="rounded-lg border border-success/40 bg-success-soft px-3.5 py-2.5 text-caption text-success-text">
+        <p
+          role="status"
+          className="rounded-lg border border-success/40 bg-success-soft px-3.5 py-2.5 text-caption text-success-text"
+        >
           <CheckCircle2 className="mr-1 inline h-4 w-4 align-middle" aria-hidden />
           {state.success}
         </p>

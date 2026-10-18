@@ -28,7 +28,13 @@ export interface TopbarProps {
  * Topbar: navegação mobile, pesquisa, seletor de organização,
  * notificações e menu de utilizador (sessão real ou demo identificado).
  */
-export function Topbar({ onMenuClick, breadcrumbs, user = null, organization = null, demoMode = false }: TopbarProps) {
+export function Topbar({
+  onMenuClick,
+  breadcrumbs,
+  user = null,
+  organization = null,
+  demoMode = false,
+}: TopbarProps) {
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-surface/95 px-4 backdrop-blur-sm sm:px-6">
       <button
@@ -43,7 +49,10 @@ export function Topbar({ onMenuClick, breadcrumbs, user = null, organization = n
       {breadcrumbs ? <div className="hidden lg:block">{breadcrumbs}</div> : null}
 
       <div className="relative hidden flex-1 sm:block">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" aria-hidden />
+        <Search
+          className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
+          aria-hidden
+        />
         <Input
           type="search"
           placeholder="Pesquisar agentes, chamadas…"

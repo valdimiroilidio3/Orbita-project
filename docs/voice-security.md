@@ -2,15 +2,15 @@
 
 ## 1. Webhooks como entrada não confiável (PROMPT 07 §9)
 
-| Medida | Implementação |
-| --- | --- |
+| Medida                    | Implementação                                                                                                                                                              |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Verificação de assinatura | `TelephonyProvider.verifyWebhookSignature` — **fail-closed**: sem adaptador/assinatura válida → 401. Utilitário HMAC em `adapters/hmac.ts` (comparação em tempo constante) |
-| Anti-replay | Janela de timestamps (`VOICE_WEBHOOK_REPLAY_WINDOW_SECONDS`) + dedup persistente |
-| Deduplicação persistente | `call_events` com `unique (provider, provider_event_id)` (migração 0004) |
-| Validação de payload | Parsing por adaptador + limite de tamanho (`VOICE_WEBHOOK_MAX_PAYLOAD_BYTES`) → 413 |
-| Rate limiting | Janela deslizante por IP (best-effort, instância única) → 429 |
-| Respostas tipadas | 401 auth ≠ 400 validação ≠ 500/503 internas — sem detalhes internos |
-| Auditoria | Logs estruturados com correlação (§5) — **sem segredos, sem conteúdo de conversa** |
+| Anti-replay               | Janela de timestamps (`VOICE_WEBHOOK_REPLAY_WINDOW_SECONDS`) + dedup persistente                                                                                           |
+| Deduplicação persistente  | `call_events` com `unique (provider, provider_event_id)` (migração 0004)                                                                                                   |
+| Validação de payload      | Parsing por adaptador + limite de tamanho (`VOICE_WEBHOOK_MAX_PAYLOAD_BYTES`) → 413                                                                                        |
+| Rate limiting             | Janela deslizante por IP (best-effort, instância única) → 429                                                                                                              |
+| Respostas tipadas         | 401 auth ≠ 400 validação ≠ 500/503 internas — sem detalhes internos                                                                                                        |
+| Auditoria                 | Logs estruturados com correlação (§5) — **sem segredos, sem conteúdo de conversa**                                                                                         |
 
 ## 2. Autorização multi-tenant
 

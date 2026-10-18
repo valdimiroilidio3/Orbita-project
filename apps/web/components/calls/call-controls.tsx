@@ -16,7 +16,11 @@ export function CallControls({ id, status }: { id: string; status: CallStatus })
   if (!showFinish && !showCancel) return null;
 
   return (
-    <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Controlos da chamada">
+    <div
+      className="flex flex-wrap items-center gap-2"
+      role="group"
+      aria-label="Controlos da chamada"
+    >
       {showFinish ? (
         <form action={finishCallAction}>
           <input type="hidden" name="id" value={id} />

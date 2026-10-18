@@ -42,23 +42,13 @@ export default async function AgentsPage({
 
   if (!isSupabaseConfigured()) {
     return (
-      <AgentsList
-        agents={demoAgents.map(toAgentSummary)}
-        demoMode
-        canCreate
-        notice={notice}
-      />
+      <AgentsList agents={demoAgents.map(toAgentSummary)} demoMode canCreate notice={notice} />
     );
   }
 
   const { agents } = await listMyAgents({ limit: 50 });
 
   return (
-    <AgentsList
-      agents={agents.map(toAgentSummary)}
-      demoMode={false}
-      canCreate
-      notice={notice}
-    />
+    <AgentsList agents={agents.map(toAgentSummary)} demoMode={false} canCreate notice={notice} />
   );
 }

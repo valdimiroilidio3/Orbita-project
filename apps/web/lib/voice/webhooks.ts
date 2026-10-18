@@ -1,10 +1,6 @@
 import type { CallLifecycleEvent } from '@orbita/shared';
 
-import type {
-  InboundCallInfo,
-  TelephonyProvider,
-  VoiceErrorCode,
-} from '@/lib/voice/contracts';
+import type { InboundCallInfo, TelephonyProvider, VoiceErrorCode } from '@/lib/voice/contracts';
 import { VoiceIntegrationError } from '@/lib/voice/contracts';
 
 /**
@@ -113,7 +109,10 @@ export function processWebhookRequest(params: {
   // 4. Parsing/validação por adaptador.
   try {
     if (params.kind === 'inbound') {
-      return { ok: true, parsed: { kind: 'inbound', info: adapter.parseInboundWebhook(request.rawBody) } };
+      return {
+        ok: true,
+        parsed: { kind: 'inbound', info: adapter.parseInboundWebhook(request.rawBody) },
+      };
     }
     const event = adapter.parseStatusWebhook(request.rawBody);
     return { ok: true, parsed: { kind: 'status', event, callRef: event.callRef } };
@@ -160,7 +159,10 @@ export class SlidingWindowRateLimiter {
   }
 }
 
-export function webhookErrorResponse(code: VoiceErrorCode, detail: string): {
+export function webhookErrorResponse(
+  code: VoiceErrorCode,
+  detail: string,
+): {
   status: number;
   body: { error: { code: string; message: string } };
 } {

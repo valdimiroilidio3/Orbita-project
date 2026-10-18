@@ -29,14 +29,14 @@ export function StartCallForm({ agents, disabled = false, disabledReason }: Star
 
   return (
     <form action={formAction} className="space-y-4" noValidate>
-      <FormField
-        label="Agente"
-        hint="Apenas agentes ativos da tua organização."
-        required
-      >
+      <FormField label="Agente" hint="Apenas agentes ativos da tua organização." required>
         {({ id, describedBy }) => (
           <>
-            <Select value={agentId} onValueChange={setAgentId} disabled={disabled || agents.length === 0}>
+            <Select
+              value={agentId}
+              onValueChange={setAgentId}
+              disabled={disabled || agents.length === 0}
+            >
               <SelectTrigger id={id} aria-describedby={describedBy}>
                 <SelectValue placeholder="Seleciona um agente ativo" />
               </SelectTrigger>
@@ -53,7 +53,11 @@ export function StartCallForm({ agents, disabled = false, disabledReason }: Star
         )}
       </FormField>
 
-      <FormField label="Número de destino" hint="Formato internacional, ex.: +351 210 000 000." required>
+      <FormField
+        label="Número de destino"
+        hint="Formato internacional, ex.: +351 210 000 000."
+        required
+      >
         {({ id, describedBy, invalid, required }) => (
           <Input
             id={id}
@@ -89,7 +93,11 @@ export function StartCallForm({ agents, disabled = false, disabledReason }: Star
         </p>
       ) : null}
 
-      <Button type="submit" disabled={pending || disabled || agents.length === 0} aria-busy={pending}>
+      <Button
+        type="submit"
+        disabled={pending || disabled || agents.length === 0}
+        aria-busy={pending}
+      >
         <PhoneOutgoing className="h-4 w-4" aria-hidden />
         {pending ? 'A iniciar…' : 'Iniciar chamada (simulada)'}
       </Button>

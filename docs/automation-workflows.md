@@ -10,13 +10,13 @@ Schema partilhado (cliente **e** servidor): `automationWorkflowSchema` em `packa
 
 ## Gatilhos suportados (apenas eventos reais)
 
-| gatilho | origem real |
-|---|---|
-| `call.received` | ingestão de webhook inbound (Prompt 07, quando houver fornecedor) |
-| `call.completed` | ingestão de status **e** simulador do Calls Center (concluir chamada) |
-| `call.failed` / `call.no_answer` / `call.busy` | ingestão de status |
-| `contact_request.created` | execução real de `contact_request.create` fora de workflows |
-| `appointment.created` | execução real de `appointment.create` fora de workflows |
+| gatilho                                        | origem real                                                           |
+| ---------------------------------------------- | --------------------------------------------------------------------- |
+| `call.received`                                | ingestão de webhook inbound (Prompt 07, quando houver fornecedor)     |
+| `call.completed`                               | ingestão de status **e** simulador do Calls Center (concluir chamada) |
+| `call.failed` / `call.no_answer` / `call.busy` | ingestão de status                                                    |
+| `contact_request.created`                      | execução real de `contact_request.create` fora de workflows           |
+| `appointment.created`                          | execução real de `appointment.create` fora de workflows               |
 
 Não há gatilhos temporais nem baseados em eventos inexistentes.
 
@@ -30,8 +30,13 @@ Exemplo — pedido de contacto automático quando uma chamada não é atendida:
 
 ```json
 [
-  { "toolId": "contact_request.create",
-    "args": { "phone": "{{call.fromNumber}}", "reason": "Chamada não atendida — pedido de contacto automático" } }
+  {
+    "toolId": "contact_request.create",
+    "args": {
+      "phone": "{{call.fromNumber}}",
+      "reason": "Chamada não atendida — pedido de contacto automático"
+    }
+  }
 ]
 ```
 

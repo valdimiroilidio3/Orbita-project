@@ -40,7 +40,14 @@ describe('canTransitionCallStatus', () => {
   });
 
   it('estados terminais não transitam', () => {
-    const terminal = ['completed', 'failed', 'busy', 'no_answer', 'cancelled', 'transferred'] as const;
+    const terminal = [
+      'completed',
+      'failed',
+      'busy',
+      'no_answer',
+      'cancelled',
+      'transferred',
+    ] as const;
     for (const from of terminal) {
       expect(isTerminalCallStatus(from)).toBe(true);
       for (const to of ['queued', 'initiating', 'in_progress', 'completed'] as const) {
@@ -109,15 +116,15 @@ describe('estimateSimulatedCost', () => {
 
 describe('computeCallDurationSeconds', () => {
   it('calcula a coerência entre timestamps', () => {
-    expect(
-      computeCallDurationSeconds('2026-10-18T10:00:00.000Z', '2026-10-18T10:01:30.000Z'),
-    ).toBe(90);
+    expect(computeCallDurationSeconds('2026-10-18T10:00:00.000Z', '2026-10-18T10:01:30.000Z')).toBe(
+      90,
+    );
   });
 
   it('nunca devolve negativo nem NaN', () => {
-    expect(
-      computeCallDurationSeconds('2026-10-18T10:01:30.000Z', '2026-10-18T10:00:00.000Z'),
-    ).toBe(0);
+    expect(computeCallDurationSeconds('2026-10-18T10:01:30.000Z', '2026-10-18T10:00:00.000Z')).toBe(
+      0,
+    );
     expect(computeCallDurationSeconds('data inválida', '2026-10-18T10:00:00.000Z')).toBe(0);
   });
 });

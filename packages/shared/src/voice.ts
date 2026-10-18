@@ -55,7 +55,10 @@ export const LIFECYCLE_EVENT_TARGET_STATUS: Record<CallLifecycleEventType, CallS
 
 export type LifecycleApplyResult =
   | { kind: 'applied'; status: CallStatus }
-  | { kind: 'noop'; reason: 'late_event' | 'terminal_immutable' | 'invalid_transition' | 'stale_event' };
+  | {
+      kind: 'noop';
+      reason: 'late_event' | 'terminal_immutable' | 'invalid_transition' | 'stale_event';
+    };
 
 /**
  * Aplica um evento de ciclo de vida ao estado atual de forma MONOTÓNICA:

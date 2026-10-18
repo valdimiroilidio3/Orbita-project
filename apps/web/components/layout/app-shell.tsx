@@ -48,7 +48,12 @@ export interface AppShellProps {
  * - Skip link (WCAG) e Container consistente;
  * - Sessão/organização reais no topo (ou modo demo identificado).
  */
-export function AppShell({ children, user = null, organization = null, demoMode = false }: AppShellProps) {
+export function AppShell({
+  children,
+  user = null,
+  organization = null,
+  demoMode = false,
+}: AppShellProps) {
   const pathname = usePathname();
   const [drawerOpen, setDrawerOpen] = React.useState(false);
 
@@ -151,7 +156,9 @@ export function AppShell({ children, user = null, organization = null, demoMode 
           <Container className="flex flex-col gap-1 py-4 text-caption text-muted sm:flex-row sm:items-center sm:justify-between">
             <p>
               ORBITA CHAT — protótipo.
-              {demoMode ? ' Modo de demonstração (sem Supabase configurado).' : ' Nenhuma integração externa ativa.'}
+              {demoMode
+                ? ' Modo de demonstração (sem Supabase configurado).'
+                : ' Nenhuma integração externa ativa.'}
             </p>
             <p>
               Design system{' '}

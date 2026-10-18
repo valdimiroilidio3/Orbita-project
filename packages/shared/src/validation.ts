@@ -27,11 +27,7 @@ export const currencySchema = z.enum(SUPPORTED_CURRENCIES);
  * Segredos de fornecedores pertencem a variáveis de ambiente do servidor.
  */
 export const voiceConfigSchema = z.strictObject({
-  voiceId: z
-    .string()
-    .trim()
-    .max(64, 'Identificador de voz demasiado longo')
-    .optional(),
+  voiceId: z.string().trim().max(64, 'Identificador de voz demasiado longo').optional(),
   speed: z
     .number()
     .min(0.5, 'Velocidade entre 0.5 e 2')

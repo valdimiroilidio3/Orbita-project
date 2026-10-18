@@ -1,10 +1,19 @@
+import {
+  CALL_DIRECTIONS,
+  CALL_STATUSES,
+  type CallDirection,
+  type CallStatus,
+} from '@orbita/shared';
+
 import { isSupabaseConfigured } from '@/lib/env';
 import { CallsList } from '@/components/calls/calls-list';
 import { demoCalls } from '@/lib/demo-data';
 import type { CallRecord } from '@/lib/dashboard/types';
-import { listMyCalls } from '@/lib/server/calls';
+import { listMyCalls, sanitizeSearchTerm } from '@/lib/server/calls';
 
 export const dynamic = 'force-dynamic';
+
+const PAGE_SIZE = 10;
 
 export const metadata = {
   title: 'Chamadas',
@@ -38,7 +47,13 @@ const demoRecords: CallRecord[] = demoCalls.map((call) => ({
 export default async function CallsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{
+    error?: string;
+    q?: string;
+    status?: string;
+    direction?: string;
+    page?: string;
+  }>;
 }) {
   const params = await searchParams;
   const notice = params.error
@@ -52,7 +67,24 @@ export default async function CallsPage({
     return <CallsList records={demoRecords} demoMode canStart={false} notice={notice} />;
   }
 
-  const { calls } = await listMyCalls({ limit: 100 });
+  // Filtros, pesquisa e paginação NO SERVIDOR — o histórico completo é acessível.
+  const status = CALL_STATUSES.includes(params.status as CallStatus)
+    ? (params.status as CallStatus)
+    : undefined;
+  const direction = CALL_DIRECTIONS.includes(params.direction as CallDirection)
+    ? (params.direction as CallDirection)
+    : undefined;
+  const requestedPage = Math.max(1, Number.parseInt(params.page ?? '1', 10) || 1);
+  const search = sanitizeSearchTerm(params.q);
+
+  const { calls, total } = await listMyCalls({
+    status,
+    direction,
+    search,
+    limit: PAGE_SIZE,
+    offset: (requestedPage - 1) * PAGE_SIZE,
+  });
+  const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   const records: CallRecord[] = calls.map((call) => ({
     id: call.id,
@@ -69,5 +101,20 @@ export default async function CallsPage({
     isDemo: false,
   }));
 
-  return <CallsList records={records} demoMode={false} canStart notice={notice} />;
+  return (
+    <CallsList
+      records={records}
+      demoMode={false}
+      canStart
+      notice={notice}
+      server={{
+        page: Math.min(requestedPage, pageCount),
+        pageCount,
+        total,
+        query: search,
+        status: status ?? 'all',
+        direction: direction ?? 'all',
+      }}
+    />
+  );
 }

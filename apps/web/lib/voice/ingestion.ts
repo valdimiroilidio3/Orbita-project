@@ -22,14 +22,21 @@ import type { InboundCallInfo } from '@/lib/voice/contracts';
 export type IngestOutcome =
   | { ok: true; kind: 'processed'; callId: string; status: CallStatus }
   | { ok: true; kind: 'duplicate'; callId: string | null }
-  | { ok: true; kind: 'ignored'; reason: 'unknown_call' | 'unmapped_number' | 'noop_event'; callId: string | null }
+  | {
+      ok: true;
+      kind: 'ignored';
+      reason: 'unknown_call' | 'unmapped_number' | 'noop_event';
+      callId: string | null;
+    }
   | { ok: false; code: 'persistence_failed' | 'integration_not_configured'; detail: string };
 
 function nowIso(): string {
   return new Date().toISOString();
 }
 
-async function persistEvent(insert: CallEventInsert): Promise<{ duplicate: boolean } | { error: string }> {
+async function persistEvent(
+  insert: CallEventInsert,
+): Promise<{ duplicate: boolean } | { error: string }> {
   if (insert.kind === 'duplicate') return { duplicate: true };
   if (insert.kind === 'rejected') return { error: insert.detail };
 
@@ -93,7 +100,9 @@ export async function ingestStatusEvent(params: {
 
   const { data: call, error: callError } = await supabase
     .from('calls')
-    .select('id, organization_id, status, started_at, answered_at, voice_session_id, from_number, to_number')
+    .select(
+      'id, organization_id, status, started_at, answered_at, voice_session_id, from_number, to_number',
+    )
     .eq('provider', params.provider)
     .eq('provider_call_id', params.callRef)
     .maybeSingle();
@@ -143,10 +152,12 @@ export async function ingestStatusEvent(params: {
   const patch: Record<string, unknown> = { status: outcome.patch.status };
   if (outcome.patch.answeredAt !== undefined) patch.answered_at = outcome.patch.answeredAt;
   if (outcome.patch.endedAt !== undefined) patch.ended_at = outcome.patch.endedAt;
-  if (outcome.patch.durationSeconds !== undefined) patch.duration_seconds = outcome.patch.durationSeconds;
+  if (outcome.patch.durationSeconds !== undefined)
+    patch.duration_seconds = outcome.patch.durationSeconds;
   if (outcome.patch.failureCode !== undefined) patch.failure_code = outcome.patch.failureCode;
   if (outcome.patch.failureReason !== undefined) patch.failure_reason = outcome.patch.failureReason;
-  if (outcome.patch.voiceSessionId !== undefined) patch.voice_session_id = outcome.patch.voiceSessionId;
+  if (outcome.patch.voiceSessionId !== undefined)
+    patch.voice_session_id = outcome.patch.voiceSessionId;
 
   const { error: updateError } = await supabase
     .from('calls')
@@ -202,7 +213,9 @@ export async function ingestInboundCall(params: {
 
   const { data: existing } = await supabase
     .from('calls')
-    .select('id, organization_id, status, started_at, answered_at, voice_session_id, from_number, to_number')
+    .select(
+      'id, organization_id, status, started_at, answered_at, voice_session_id, from_number, to_number',
+    )
     .eq('provider', params.provider)
     .eq('provider_call_id', params.info.providerCallId)
     .maybeSingle();

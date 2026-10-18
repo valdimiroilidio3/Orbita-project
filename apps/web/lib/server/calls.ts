@@ -39,8 +39,19 @@ export interface CallDetailRecord {
 export interface ListCallsOptions {
   status?: CallStatus;
   direction?: CallDirection;
+  /** Pesquisa por número (origem/destino). Sanitizada — sem wildcards do utilizador. */
+  search?: string;
   limit?: number;
   offset?: number;
+}
+
+/** Remove caracteres especiais do padrão `ilike` e limita o tamanho. */
+export function sanitizeSearchTerm(raw: string | undefined): string {
+  if (!raw) return '';
+  return raw
+    .replace(/[%_\\,()]/g, '')
+    .trim()
+    .slice(0, 40);
 }
 
 export interface ListCallsResult {
@@ -123,6 +134,10 @@ export async function listMyCalls(options: ListCallsOptions = {}): Promise<ListC
 
   if (options.status) query = query.eq('status', options.status);
   if (options.direction) query = query.eq('direction', options.direction);
+  const term = sanitizeSearchTerm(options.search);
+  if (term !== '') {
+    query = query.or(`to_number.ilike.%${term}%,from_number.ilike.%${term}%`);
+  }
 
   const { data, error, count } = await query;
   if (error) {

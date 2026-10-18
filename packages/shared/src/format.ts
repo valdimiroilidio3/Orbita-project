@@ -96,3 +96,18 @@ export function formatInteger(
   }
   return new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }).format(value);
 }
+
+/**
+ * Mascara um número de telefone para listagens (privacidade): mantém o
+ * indicativo/prefixo e os últimos 3 dígitos — ex.: "+351 21•••• ••123".
+ * Entradas curtas ou vazias devolvem "—" / o valor sem alteração.
+ */
+export function maskPhoneNumber(value: string | null | undefined): string {
+  if (!value) return '—';
+  const digits = value.replace(/\D/g, '');
+  if (digits.length < 7) return value;
+  const prefix = value.startsWith('+') ? `+${digits.slice(0, 3)}` : digits.slice(0, 2);
+  const suffix = digits.slice(-3);
+  const hiddenCount = Math.max(digits.length - (value.startsWith('+') ? 3 : 2) - 3, 2);
+  return `${prefix} ${'•'.repeat(Math.min(hiddenCount, 8))}${suffix}`;
+}

@@ -12,7 +12,10 @@ import { pickActiveOrganization } from '../lib/active-org';
 
 describe('createOrganizationSchema', () => {
   it('aceita nome e slug válidos', () => {
-    const parsed = createOrganizationSchema.parse({ name: 'Clínica São João', slug: 'clinica-sao-joao' });
+    const parsed = createOrganizationSchema.parse({
+      name: 'Clínica São João',
+      slug: 'clinica-sao-joao',
+    });
     expect(parsed.slug).toBe('clinica-sao-joao');
   });
 
@@ -23,7 +26,9 @@ describe('createOrganizationSchema', () => {
 
   it('rejeita nome vazio e slug inválido', () => {
     expect(createOrganizationSchema.safeParse({ name: '  ', slug: 'abc' }).success).toBe(false);
-    expect(createOrganizationSchema.safeParse({ name: 'Acme', slug: 'inválido!' }).success).toBe(false);
+    expect(createOrganizationSchema.safeParse({ name: 'Acme', slug: 'inválido!' }).success).toBe(
+      false,
+    );
     expect(createOrganizationSchema.safeParse({ name: 'Acme', slug: 'ab' }).success).toBe(false);
   });
 });
@@ -39,16 +44,26 @@ describe('loginSchema', () => {
 describe('signUpSchema / resetPasswordSchema', () => {
   it('exige confirmação coincidente e mínimo de 8 caracteres', () => {
     expect(
-      signUpSchema.safeParse({ email: 'a@b.pt', password: 'segura123', confirmPassword: 'segura123' }).success,
+      signUpSchema.safeParse({
+        email: 'a@b.pt',
+        password: 'segura123',
+        confirmPassword: 'segura123',
+      }).success,
     ).toBe(true);
     expect(
-      signUpSchema.safeParse({ email: 'a@b.pt', password: 'segura123', confirmPassword: 'outra4567' }).success,
+      signUpSchema.safeParse({
+        email: 'a@b.pt',
+        password: 'segura123',
+        confirmPassword: 'outra4567',
+      }).success,
     ).toBe(false);
     expect(
-      signUpSchema.safeParse({ email: 'a@b.pt', password: 'curta', confirmPassword: 'curta' }).success,
+      signUpSchema.safeParse({ email: 'a@b.pt', password: 'curta', confirmPassword: 'curta' })
+        .success,
     ).toBe(false);
     expect(
-      resetPasswordSchema.safeParse({ password: 'segura123', confirmPassword: 'segura123' }).success,
+      resetPasswordSchema.safeParse({ password: 'segura123', confirmPassword: 'segura123' })
+        .success,
     ).toBe(true);
   });
 });

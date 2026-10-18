@@ -66,7 +66,12 @@ export async function findExecutionByIdempotencyKey(
   client: SupabaseClient,
   organizationId: string,
   key: string,
-): Promise<{ id: string; status: string; result: Record<string, unknown> | null; resultMessage: string | null } | null> {
+): Promise<{
+  id: string;
+  status: string;
+  result: Record<string, unknown> | null;
+  resultMessage: string | null;
+} | null> {
   const { data } = await client
     .from('tool_executions')
     .select('id, status, result, result_message')

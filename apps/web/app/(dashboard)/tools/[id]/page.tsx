@@ -1,11 +1,6 @@
 import { notFound } from 'next/navigation';
 
-import {
-  TOOL_ARGS_SCHEMAS,
-  TOOL_DEFINITIONS,
-  isToolId,
-  type ToolRiskLevel,
-} from '@orbita/shared';
+import { TOOL_ARGS_SCHEMAS, TOOL_DEFINITIONS, isToolId, type ToolRiskLevel } from '@orbita/shared';
 
 import { ToolRunForm } from '@/components/tools/tool-run-form';
 import { Badge } from '@/components/ui/badge';
@@ -40,7 +35,15 @@ function ExecutionRow({ execution }: { execution: ExecutionSummary }) {
           {execution.resultMessage ?? execution.errorMessage ?? '—'}
         </p>
       </div>
-      <Badge variant={execution.status === 'succeeded' ? 'success' : execution.status === 'awaiting_approval' ? 'warning' : 'outline'}>
+      <Badge
+        variant={
+          execution.status === 'succeeded'
+            ? 'success'
+            : execution.status === 'awaiting_approval'
+              ? 'warning'
+              : 'outline'
+        }
+      >
         {execution.status}
       </Badge>
     </li>
@@ -73,15 +76,24 @@ export default async function ToolDetailPage({
       <PageHeader title={tool.name} description={tool.descriptionForAgent}>
         <div className="flex flex-wrap gap-2">
           <Badge variant="outline">{tool.category}</Badge>
-          <Badge variant={tool.risk === 'low' ? 'success' : tool.risk === 'moderate' ? 'warning' : 'danger'}>
+          <Badge
+            variant={
+              tool.risk === 'low' ? 'success' : tool.risk === 'moderate' ? 'warning' : 'danger'
+            }
+          >
             {RISK_LABELS[tool.risk]}
           </Badge>
-          <Badge variant="outline">{tool.idempotent ? 'Idempotente' : 'Requer chave de idempotência'}</Badge>
+          <Badge variant="outline">
+            {tool.idempotent ? 'Idempotente' : 'Requer chave de idempotência'}
+          </Badge>
         </div>
       </PageHeader>
 
       {query.updated ? (
-        <p role="status" className="rounded-xl border border-success/40 bg-success-soft px-3.5 py-2.5 text-xs font-medium text-success-text">
+        <p
+          role="status"
+          className="rounded-xl border border-success/40 bg-success-soft px-3.5 py-2.5 text-xs font-medium text-success-text"
+        >
           Autorização atualizada.
         </p>
       ) : null}
@@ -90,11 +102,13 @@ export default async function ToolDetailPage({
         <Card>
           <CardHeader>
             <CardTitle>Esquema de argumentos</CardTitle>
-            <CardDescription>Validado no servidor — o modelo não define permissões.</CardDescription>
+            <CardDescription>
+              Validado no servidor — o modelo não define permissões.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <pre className="overflow-x-auto rounded-lg border border-border bg-surface p-3 font-mono text-caption">
-{JSON.stringify(zodToJsonLike(schema), null, 2)}
+              {JSON.stringify(zodToJsonLike(schema), null, 2)}
             </pre>
             <dl className="mt-3 space-y-1 text-caption">
               <div className="flex justify-between">
@@ -113,7 +127,11 @@ export default async function ToolDetailPage({
               </div>
               <div className="flex justify-between">
                 <dt className="text-muted">Retry</dt>
-                <dd>{tool.retryPolicy === 'safe' ? 'Seguro (operações idempotentes)' : 'Sem retry automático'}</dd>
+                <dd>
+                  {tool.retryPolicy === 'safe'
+                    ? 'Seguro (operações idempotentes)'
+                    : 'Sem retry automático'}
+                </dd>
               </div>
             </dl>
           </CardContent>
@@ -123,12 +141,15 @@ export default async function ToolDetailPage({
           <CardHeader>
             <CardTitle>Agentes autorizados</CardTitle>
             <CardDescription>
-              Sem autorização explícita, o agente não executa esta ferramenta (apenas owners/admins alteram).
+              Sem autorização explícita, o agente não executa esta ferramenta (apenas owners/admins
+              alteram).
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
             {!configured ? (
-              <p className="text-caption text-muted">Supabase não configurado — autorizações indisponíveis.</p>
+              <p className="text-caption text-muted">
+                Supabase não configurado — autorizações indisponíveis.
+              </p>
             ) : agents.length === 0 ? (
               <p className="text-caption text-muted">Sem agentes nesta organização.</p>
             ) : (
@@ -163,7 +184,11 @@ export default async function ToolDetailPage({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {configured ? <ToolRunForm toolId={id} /> : <p className="text-caption text-muted">Supabase não configurado.</p>}
+          {configured ? (
+            <ToolRunForm toolId={id} />
+          ) : (
+            <p className="text-caption text-muted">Supabase não configurado.</p>
+          )}
         </CardContent>
       </Card>
 

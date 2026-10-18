@@ -1,5 +1,6 @@
 import type { AutomationTrigger } from '@orbita/shared';
 
+import { log } from '@/lib/observability/logger';
 import { runAutomationsForTrigger } from '@/lib/tools/automation';
 
 /**
@@ -50,10 +51,10 @@ export async function dispatchCallAutomations(params: {
       },
     });
   } catch (error) {
-    console.warn('[automations] falha ao disparar workflows', {
+    log('warn', 'automations.dispatch_failed', {
       callId: params.callId,
       trigger,
-      message: error instanceof Error ? error.message : 'erro desconhecido',
+      error,
     });
   }
 }

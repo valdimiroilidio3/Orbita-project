@@ -65,7 +65,8 @@ export default function ResetPasswordPage() {
         <Button type="submit" className="w-full" disabled={pending} aria-busy={pending}>
           {pending ? (
             <>
-              <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden />A guardar…
+              <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden />A
+              guardar…
             </>
           ) : (
             <>

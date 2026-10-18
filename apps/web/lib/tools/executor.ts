@@ -155,7 +155,11 @@ export async function executeTool(params: {
 
   // 1–2. Estrutura e existência da ferramenta (catálogo allowlisted).
   if (!isToolId(toolId)) {
-    return { executionId: null, result: { status: 'not_found', message: 'Ferramenta desconhecida.' }, replayed: false };
+    return {
+      executionId: null,
+      result: { status: 'not_found', message: 'Ferramenta desconhecida.' },
+      replayed: false,
+    };
   }
   const definition = TOOL_DEFINITIONS[toolId];
 
@@ -163,7 +167,11 @@ export async function executeTool(params: {
   // infraestrutura: erros de validação são sempre reportados.
   const serialized = serializeArgs((params.rawArgs ?? {}) as Record<string, unknown>);
   if (serialized.length > TOOL_ARGS_MAX_BYTES) {
-    return { executionId: null, result: validationError('Argumentos demasiado grandes.'), replayed: false };
+    return {
+      executionId: null,
+      result: validationError('Argumentos demasiado grandes.'),
+      replayed: false,
+    };
   }
 
   const schema = TOOL_ARGS_SCHEMAS[toolId];
@@ -188,10 +196,19 @@ export async function executeTool(params: {
 
   // 4–6. Contexto validado + autorização por organização/agente.
   if (!context.organizationId) {
-    return { executionId: null, result: unauthorized('Contexto de organização em falta.'), replayed: false };
+    return {
+      executionId: null,
+      result: unauthorized('Contexto de organização em falta.'),
+      replayed: false,
+    };
   }
   if (context.agentId) {
-    const agentAccess = await isToolEnabledForAgent(client, context.organizationId, context.agentId, toolId);
+    const agentAccess = await isToolEnabledForAgent(
+      client,
+      context.organizationId,
+      context.agentId,
+      toolId,
+    );
     if (!agentAccess.enabled) {
       return {
         executionId: null,
@@ -204,7 +221,12 @@ export async function executeTool(params: {
   // 7. Limites de utilização (por chamada e por organização).
   const [countCall, countOrg] = await Promise.all([
     context.callId
-      ? countRecentExecutions(client, context.organizationId, context.callId, RATE_LIMIT_WINDOW_SECONDS)
+      ? countRecentExecutions(
+          client,
+          context.organizationId,
+          context.callId,
+          RATE_LIMIT_WINDOW_SECONDS,
+        )
       : Promise.resolve(0),
     countRecentExecutions(client, context.organizationId, null, RATE_LIMIT_WINDOW_SECONDS),
   ]);
@@ -218,7 +240,11 @@ export async function executeTool(params: {
     (definition.idempotent ? null : deriveIdempotencyKey(toolId, context, args));
 
   if (idempotencyKey) {
-    const existing = await findExecutionByIdempotencyKey(client, context.organizationId, idempotencyKey);
+    const existing = await findExecutionByIdempotencyKey(
+      client,
+      context.organizationId,
+      idempotencyKey,
+    );
     if (existing && (existing.status === 'succeeded' || existing.status === 'running')) {
       return {
         executionId: existing.id,
@@ -249,7 +275,11 @@ export async function executeTool(params: {
     return { executionId: null, result: internalError(), replayed: false };
   }
   if ('duplicateOf' in inserted) {
-    return { executionId: inserted.duplicateOf, result: { status: 'success', message: 'Operação já executada.', data: { replayed: 'true' } }, replayed: true };
+    return {
+      executionId: inserted.duplicateOf,
+      result: { status: 'success', message: 'Operação já executada.', data: { replayed: 'true' } },
+      replayed: true,
+    };
   }
   const executionId = inserted.id;
 
@@ -257,7 +287,8 @@ export async function executeTool(params: {
   const needsApproval =
     definition.confirmation === 'human_approval' ||
     (context.agentId
-      ? (await isToolEnabledForAgent(client, context.organizationId, context.agentId, toolId)).requireApproval
+      ? (await isToolEnabledForAgent(client, context.organizationId, context.agentId, toolId))
+          .requireApproval
       : false);
 
   if (needsApproval) {
@@ -304,9 +335,17 @@ export async function executeTool(params: {
         case 'availability.check':
           return handleAvailabilityCheck(handlerCtx, args as never);
         case 'contact_request.create':
-          return handleContactRequestCreate(handlerCtx, args as never, idempotencyKey ?? `auto-${executionId}`);
+          return handleContactRequestCreate(
+            handlerCtx,
+            args as never,
+            idempotencyKey ?? `auto-${executionId}`,
+          );
         case 'appointment.create':
-          return handleAppointmentCreate(handlerCtx, args as never, idempotencyKey ?? `auto-${executionId}`);
+          return handleAppointmentCreate(
+            handlerCtx,
+            args as never,
+            idempotencyKey ?? `auto-${executionId}`,
+          );
         case 'call.transfer':
           return handleCallTransfer(handlerCtx, args as never);
       }
@@ -320,7 +359,12 @@ export async function executeTool(params: {
 
   // 11–12. Auditoria + resultado estruturado (sem internos/segredos).
   await finalizeToolExecution(client, executionId, context.organizationId, {
-    status: outcome.status === 'success' ? 'succeeded' : outcome.status === 'timeout' ? 'timed_out' : 'failed',
+    status:
+      outcome.status === 'success'
+        ? 'succeeded'
+        : outcome.status === 'timeout'
+          ? 'timed_out'
+          : 'failed',
     result: sanitizeResultData(outcome.data),
     resultMessage: outcome.message.slice(0, 500),
     errorCode: outcome.status === 'success' ? null : outcome.status,

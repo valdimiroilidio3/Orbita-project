@@ -106,7 +106,10 @@ const ONE_STEP_WORKFLOW = {
   name: 'Follow-up',
   trigger: 'call.no_answer',
   steps: [
-    { toolId: 'contact_request.create', args: { phone: '{{call.fromNumber}}', reason: 'Não atendida' } },
+    {
+      toolId: 'contact_request.create',
+      args: { phone: '{{call.fromNumber}}', reason: 'Não atendida' },
+    },
     { toolId: 'business_info.lookup', args: {} },
   ],
   timeout_seconds: 30,
@@ -120,8 +123,12 @@ describe('workflow engine', () => {
       'automation_runs.update': [{ data: null }],
       // Por passo: 2 contagens de limite (chamada + org) → pesquisa idempotente → inserir → finalizar.
       'tool_executions.select': [
-        { data: [], count: 0 }, { data: [], count: 0 }, { data: null },
-        { data: [], count: 0 }, { data: [], count: 0 }, { data: null },
+        { data: [], count: 0 },
+        { data: [], count: 0 },
+        { data: null },
+        { data: [], count: 0 },
+        { data: [], count: 0 },
+        { data: null },
       ],
       'tool_executions.insert': [{ data: { id: 'exec-1' } }, { data: { id: 'exec-2' } }],
       'tool_executions.update': [{ data: null }, { data: null }],
@@ -184,7 +191,15 @@ describe('workflow engine', () => {
   it('anti-reentrada: evento repetido para o mesmo workflow é ignorado', async () => {
     mockService.client = fakeClient({
       'automation_workflows.select': [
-        { data: [{ ...ONE_STEP_WORKFLOW, id: 'wf-3', steps: [{ toolId: 'business_info.lookup', args: {} }] }] },
+        {
+          data: [
+            {
+              ...ONE_STEP_WORKFLOW,
+              id: 'wf-3',
+              steps: [{ toolId: 'business_info.lookup', args: {} }],
+            },
+          ],
+        },
       ],
       'automation_runs.insert': [{ data: null, error: { code: '23505', message: 'duplicado' } }],
     });

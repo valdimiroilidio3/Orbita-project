@@ -69,17 +69,22 @@ export async function handleBusinessInfoLookup(
   const all: Record<BusinessInfoSection, string> = {
     hours: hours.ok
       ? Object.entries(hours.value)
-          .map(([day, ranges]) =>
-            `${day}: ${ranges.length === 0 ? 'fechado' : ranges.map((r) => `${r.start}-${r.end}`).join(', ')}`,
+          .map(
+            ([day, ranges]) =>
+              `${day}: ${ranges.length === 0 ? 'fechado' : ranges.map((r) => `${r.start}-${r.end}`).join(', ')}`,
           )
           .join('; ')
       : 'Horário não disponível.',
     services: services.ok
-      ? services.value.map((s) => `${s.name} (${s.durationMinutes} min${s.price ? `, ${s.price}` : ''})`).join('; ')
+      ? services.value
+          .map((s) => `${s.name} (${s.durationMinutes} min${s.price ? `, ${s.price}` : ''})`)
+          .join('; ')
       : 'Serviços não disponíveis.',
     prices: profile.prices ?? '',
     address: profile.address ?? '',
-    contacts: [profile.phone ? `tel. ${profile.phone}` : '', profile.email ?? ''].filter(Boolean).join('; '),
+    contacts: [profile.phone ? `tel. ${profile.phone}` : '', profile.email ?? '']
+      .filter(Boolean)
+      .join('; '),
     faq: profile.faq ?? '',
     policies: profile.policies ?? '',
   };
@@ -130,7 +135,10 @@ export async function handleAvailabilityCheck(
   const hours = parseBusinessHours(profile.hours_text ?? '');
   const services = parseServiceLines(profile.services_text ?? '');
   if (!hours.ok || !services.ok) {
-    return { status: 'provider_unavailable', message: 'Configuração de horário/serviços inválida.' };
+    return {
+      status: 'provider_unavailable',
+      message: 'Configuração de horário/serviços inválida.',
+    };
   }
 
   const service = services.value.find(
@@ -299,9 +307,7 @@ export async function handleAppointmentCreate(
     const dayHours = hours.value[day] ?? [];
     const startHHMM = startsAt.toISOString().slice(11, 16);
     const endHHMM = endsAt.toISOString().slice(11, 16);
-    const withinHours = dayHours.some(
-      (range) => startHHMM >= range.start && endHHMM <= range.end,
-    );
+    const withinHours = dayHours.some((range) => startHHMM >= range.start && endHHMM <= range.end);
     if (dayHours.length > 0 && !withinHours) {
       return {
         status: 'conflict',

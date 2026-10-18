@@ -217,7 +217,10 @@ export const callTransferArgsSchema = z.object({
   destination: z
     .string()
     .trim()
-    .regex(/^[a-z][a-z0-9_-]{1,63}$/, 'Destino deve ser uma rota autorizada (ex.: recepcao), nunca um número'),
+    .regex(
+      /^[a-z][a-z0-9_-]{1,63}$/,
+      'Destino deve ser uma rota autorizada (ex.: recepcao), nunca um número',
+    ),
 });
 
 export const TOOL_ARGS_SCHEMAS = {
@@ -254,10 +257,7 @@ export interface WorkflowTriggerContext {
   contactName: string | null;
 }
 
-export function renderWorkflowArgs(
-  value: unknown,
-  context: WorkflowTriggerContext,
-): unknown {
+export function renderWorkflowArgs(value: unknown, context: WorkflowTriggerContext): unknown {
   if (typeof value === 'string') {
     let result = value;
     for (const [placeholder, resolve] of Object.entries(WORKFLOW_PLACEHOLDERS)) {
@@ -334,12 +334,7 @@ export const WORKFLOW_MAX_TOOL_EXECUTIONS = 5;
 
 export const businessProfileSchema = z.object({
   displayName: z.string().trim().min(1).max(120).default(''),
-  timezone: z
-    .string()
-    .trim()
-    .min(1)
-    .max(64)
-    .default('Europe/Lisbon'),
+  timezone: z.string().trim().min(1).max(64).default('Europe/Lisbon'),
   address: z.string().trim().max(300).nullish(),
   phone: z.string().trim().max(32).nullish(),
   email: z.string().trim().max(254).nullish(),
@@ -381,9 +376,9 @@ function isValidTime(value: string): boolean {
 }
 
 /** Analisa o horário compacto — erros claros, nunca horários inventados. */
-export function parseBusinessHours(text: string):
-  | { ok: true; value: BusinessHours }
-  | { ok: false; error: string } {
+export function parseBusinessHours(
+  text: string,
+): { ok: true; value: BusinessHours } | { ok: false; error: string } {
   const value: BusinessHours = {};
   const trimmed = text.trim();
   if (trimmed === '') return { ok: true, value };
@@ -402,7 +397,10 @@ export function parseBusinessHours(text: string):
     if (seen.has(day)) return { ok: false, error: `Dia repetido: «${day}»` };
     seen.add(day);
 
-    const body = piece.slice(separator + 1).trim().toLowerCase();
+    const body = piece
+      .slice(separator + 1)
+      .trim()
+      .toLowerCase();
     if (body === 'fechado' || body === 'closed') {
       value[day as Weekday] = [];
       continue;
@@ -425,9 +423,9 @@ export function parseBusinessHours(text: string):
 }
 
 /** Analisa as linhas de serviços — nunca inventa serviços. */
-export function parseServiceLines(text: string):
-  | { ok: true; value: BusinessService[] }
-  | { ok: false; error: string } {
+export function parseServiceLines(
+  text: string,
+): { ok: true; value: BusinessService[] } | { ok: false; error: string } {
   const value: BusinessService[] = [];
   const trimmed = text.trim();
   if (trimmed === '') return { ok: true, value };

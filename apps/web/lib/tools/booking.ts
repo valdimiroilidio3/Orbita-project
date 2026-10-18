@@ -82,7 +82,11 @@ export class DevBookingAdapter implements BookingProvider {
           message: 'Esse horário já está marcado. Escolhe outro.',
         };
       }
-      return { ok: false, code: 'internal_error', message: 'Não foi possível registar a marcação.' };
+      return {
+        ok: false,
+        code: 'internal_error',
+        message: 'Não foi possível registar a marcação.',
+      };
     }
 
     return { ok: true, reference: created.id, source: this.name, duplicate: false };

@@ -52,12 +52,18 @@ export default async function ToolsPage({
       </PageHeader>
 
       {params.error ? (
-        <p role="alert" className="rounded-xl border border-danger/40 bg-danger-soft px-3.5 py-2.5 text-xs font-medium text-danger-text">
+        <p
+          role="alert"
+          className="rounded-xl border border-danger/40 bg-danger-soft px-3.5 py-2.5 text-xs font-medium text-danger-text"
+        >
           {params.motivo ?? 'Ocorreu um erro. Tenta novamente.'}
         </p>
       ) : null}
       {params.aprovacao ? (
-        <p role="status" className="rounded-xl border border-success/40 bg-success-soft px-3.5 py-2.5 text-xs font-medium text-success-text">
+        <p
+          role="status"
+          className="rounded-xl border border-success/40 bg-success-soft px-3.5 py-2.5 text-xs font-medium text-success-text"
+        >
           Aprovação processada.
         </p>
       ) : null}
@@ -85,13 +91,17 @@ export default async function ToolsPage({
                     <input type="hidden" name="approvalId" value={approval.id} />
                     <input type="hidden" name="executionId" value={approval.toolExecutionId} />
                     <input type="hidden" name="decision" value="approve" />
-                    <Button type="submit" size="sm">Aprovar</Button>
+                    <Button type="submit" size="sm">
+                      Aprovar
+                    </Button>
                   </form>
                   <form action={decideApprovalAction}>
                     <input type="hidden" name="approvalId" value={approval.id} />
                     <input type="hidden" name="executionId" value={approval.toolExecutionId} />
                     <input type="hidden" name="decision" value="reject" />
-                    <Button type="submit" variant="outline" size="sm">Rejeitar</Button>
+                    <Button type="submit" variant="outline" size="sm">
+                      Rejeitar
+                    </Button>
                   </form>
                 </div>
               </div>
@@ -128,7 +138,9 @@ export default async function ToolsPage({
                           ? 'Confirmação verbal após sucesso'
                           : 'Sem confirmação'}
                     </Badge>
-                    <Badge variant="outline">{tool.idempotent ? 'Idempotente' : 'Chave de idempotência'}</Badge>
+                    <Badge variant="outline">
+                      {tool.idempotent ? 'Idempotente' : 'Chave de idempotência'}
+                    </Badge>
                   </div>
                   <Button variant="outline" size="sm" asChild>
                     <Link href={`/tools/${toolId}`}>Ver detalhe</Link>

@@ -63,7 +63,9 @@ export async function listExecutions(options: {
   const supabase = await createSupabaseServerClient();
   let query = supabase
     .from('tool_executions')
-    .select('id, tool_id, status, risk, result_message, error_code, error_message, created_at, finished_at, call_id, agent_id')
+    .select(
+      'id, tool_id, status, risk, result_message, error_code, error_message, created_at, finished_at, call_id, agent_id',
+    )
     .eq('organization_id', organization.id)
     .order('created_at', { ascending: false })
     .limit(Math.min(options.limit ?? 25, 100));
@@ -108,19 +110,19 @@ export async function listPendingApprovals(): Promise<ApprovalSummary[]> {
     tool_executions: { tool_id: string } | { tool_id: string }[] | null;
   }
 
-  return ((data ?? []) as unknown as ApprovalRow[]).map(
-    (row) => {
-      const execution = Array.isArray(row.tool_executions) ? row.tool_executions[0] : row.tool_executions;
-      return {
-        id: row.id,
-        toolExecutionId: row.tool_execution_id,
-        toolId: execution?.tool_id ?? '',
-        status: row.status,
-        expiresAt: row.expires_at,
-        requestedAt: row.requested_at,
-      };
-    },
-  );
+  return ((data ?? []) as unknown as ApprovalRow[]).map((row) => {
+    const execution = Array.isArray(row.tool_executions)
+      ? row.tool_executions[0]
+      : row.tool_executions;
+    return {
+      id: row.id,
+      toolExecutionId: row.tool_execution_id,
+      toolId: execution?.tool_id ?? '',
+      status: row.status,
+      expiresAt: row.expires_at,
+      requestedAt: row.requested_at,
+    };
+  });
 }
 
 export interface WorkflowSummary {
@@ -154,25 +156,32 @@ export async function listWorkflows(): Promise<WorkflowSummary[]> {
     .order('started_at', { ascending: false })
     .limit(200);
 
-  return ((workflows ?? []) as { id: string; name: string; description: string | null; active: boolean; trigger: string; steps: unknown }[]).map(
-    (workflow) => {
-      const workflowRuns = ((runs ?? []) as { workflow_id: string; status: string; started_at: string }[]).filter(
-        (run) => run.workflow_id === workflow.id,
-      );
-      const lastRun = workflowRuns[0];
-      return {
-        id: workflow.id,
-        name: workflow.name,
-        description: workflow.description,
-        active: workflow.active,
-        trigger: workflow.trigger,
-        stepsCount: Array.isArray(workflow.steps) ? workflow.steps.length : 0,
-        runsCount: workflowRuns.length,
-        lastRunAt: lastRun?.started_at ?? null,
-        lastRunStatus: lastRun?.status ?? null,
-      };
-    },
-  );
+  return (
+    (workflows ?? []) as {
+      id: string;
+      name: string;
+      description: string | null;
+      active: boolean;
+      trigger: string;
+      steps: unknown;
+    }[]
+  ).map((workflow) => {
+    const workflowRuns = (
+      (runs ?? []) as { workflow_id: string; status: string; started_at: string }[]
+    ).filter((run) => run.workflow_id === workflow.id);
+    const lastRun = workflowRuns[0];
+    return {
+      id: workflow.id,
+      name: workflow.name,
+      description: workflow.description,
+      active: workflow.active,
+      trigger: workflow.trigger,
+      stepsCount: Array.isArray(workflow.steps) ? workflow.steps.length : 0,
+      runsCount: workflowRuns.length,
+      lastRunAt: lastRun?.started_at ?? null,
+      lastRunStatus: lastRun?.status ?? null,
+    };
+  });
 }
 
 export interface WorkflowDetail extends WorkflowSummary {
@@ -207,7 +216,10 @@ export async function getWorkflow(id: string): Promise<WorkflowDetail | null> {
       lastRunAt: null,
       lastRunStatus: null,
     }),
-    steps: (Array.isArray(data.steps) ? data.steps : []) as { toolId: string; args: Record<string, unknown> }[],
+    steps: (Array.isArray(data.steps) ? data.steps : []) as {
+      toolId: string;
+      args: Record<string, unknown>;
+    }[],
     timeoutSeconds: data.timeout_seconds ?? 30,
   };
 }
@@ -236,17 +248,27 @@ export async function listWorkflowRuns(workflowId: string): Promise<WorkflowRunS
     .order('started_at', { ascending: false })
     .limit(25);
 
-  return ((data ?? []) as { id: string; status: string; trigger: string; trigger_key: string; steps_result: unknown; started_at: string; finished_at: string | null }[]).map(
-    (row) => ({
-      id: row.id,
-      status: row.status,
-      trigger: row.trigger,
-      triggerKey: row.trigger_key,
-      stepsResult: (Array.isArray(row.steps_result) ? row.steps_result : []) as WorkflowRunSummary['stepsResult'],
-      startedAt: row.started_at,
-      finishedAt: row.finished_at,
-    }),
-  );
+  return (
+    (data ?? []) as {
+      id: string;
+      status: string;
+      trigger: string;
+      trigger_key: string;
+      steps_result: unknown;
+      started_at: string;
+      finished_at: string | null;
+    }[]
+  ).map((row) => ({
+    id: row.id,
+    status: row.status,
+    trigger: row.trigger,
+    triggerKey: row.trigger_key,
+    stepsResult: (Array.isArray(row.steps_result)
+      ? row.steps_result
+      : []) as WorkflowRunSummary['stepsResult'],
+    startedAt: row.started_at,
+    finishedAt: row.finished_at,
+  }));
 }
 
 export interface AgentOption {
@@ -269,7 +291,9 @@ export async function listAgentsForTools(): Promise<AgentOption[]> {
   return (data ?? []) as AgentOption[];
 }
 
-export async function listAgentToolsFor(toolId: string): Promise<{ agentId: string; enabled: boolean }[]> {
+export async function listAgentToolsFor(
+  toolId: string,
+): Promise<{ agentId: string; enabled: boolean }[]> {
   await requireUser();
   const organization = await getActiveOrganization();
   if (!organization) return [];
@@ -300,4 +324,107 @@ export async function getBusinessProfile(): Promise<Record<string, string> | nul
     .maybeSingle();
 
   return (data as Record<string, string> | null) ?? null;
+}
+
+export interface ContactRequestSummary {
+  id: string;
+  name: string | null;
+  phone: string;
+  reason: string;
+  preferredPeriod: string | null;
+  status: 'open' | 'contacted' | 'closed';
+  callId: string | null;
+  createdAt: string;
+}
+
+/** Pedidos de contacto da organização ativa (RLS por membership). */
+export async function listContactRequests(limit = 50): Promise<ContactRequestSummary[]> {
+  await requireUser();
+  const organization = await getActiveOrganization();
+  if (!organization) return [];
+
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from('contact_requests')
+    .select('id, name, phone, reason, preferred_period, status, call_id, created_at')
+    .eq('organization_id', organization.id)
+    .order('created_at', { ascending: false })
+    .limit(Math.min(limit, 100));
+
+  if (error) throw new Error(`Não foi possível carregar pedidos de contacto: ${error.message}`);
+  return (
+    (data ?? []) as {
+      id: string;
+      name: string | null;
+      phone: string;
+      reason: string;
+      preferred_period: string | null;
+      status: 'open' | 'contacted' | 'closed';
+      call_id: string | null;
+      created_at: string;
+    }[]
+  ).map((row) => ({
+    id: row.id,
+    name: row.name,
+    phone: row.phone,
+    reason: row.reason,
+    preferredPeriod: row.preferred_period,
+    status: row.status,
+    callId: row.call_id,
+    createdAt: row.created_at,
+  }));
+}
+
+export interface AppointmentSummary {
+  id: string;
+  service: string;
+  startsAt: string;
+  endsAt: string;
+  customerName: string | null;
+  customerPhone: string;
+  status: 'confirmed' | 'cancelled';
+  source: string;
+  createdAt: string;
+}
+
+/** Marcações da organização ativa. */
+export async function listAppointments(limit = 50): Promise<AppointmentSummary[]> {
+  await requireUser();
+  const organization = await getActiveOrganization();
+  if (!organization) return [];
+
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from('appointments')
+    .select(
+      'id, service, starts_at, ends_at, customer_name, customer_phone, status, source, created_at',
+    )
+    .eq('organization_id', organization.id)
+    .order('starts_at', { ascending: false })
+    .limit(Math.min(limit, 100));
+
+  if (error) throw new Error(`Não foi possível carregar marcações: ${error.message}`);
+  return (
+    (data ?? []) as {
+      id: string;
+      service: string;
+      starts_at: string;
+      ends_at: string;
+      customer_name: string | null;
+      customer_phone: string;
+      status: 'confirmed' | 'cancelled';
+      source: string;
+      created_at: string;
+    }[]
+  ).map((row) => ({
+    id: row.id,
+    service: row.service,
+    startsAt: row.starts_at,
+    endsAt: row.ends_at,
+    customerName: row.customer_name,
+    customerPhone: row.customer_phone,
+    status: row.status,
+    source: row.source,
+    createdAt: row.created_at,
+  }));
 }

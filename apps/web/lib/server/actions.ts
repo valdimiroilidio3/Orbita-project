@@ -13,7 +13,11 @@ import {
 import type { ZodError } from 'zod';
 
 import { isSupabaseConfigured } from '@/lib/env';
-import { ACTIVE_ORG_COOKIE, listMyOrganizations, pickActiveOrganization } from '@/lib/server/organizations';
+import {
+  ACTIVE_ORG_COOKIE,
+  listMyOrganizations,
+  pickActiveOrganization,
+} from '@/lib/server/organizations';
 import { requireUser } from '@/lib/server/session';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import type { AuthFormState } from '@/lib/server/auth-form-state';
@@ -119,7 +123,8 @@ export async function forgotPasswordAction(
   // Sempre a mesma mensagem, com ou sem conta existente.
   return {
     error: null,
-    success: 'Se existir uma conta com esse email, recebes um link de recuperação dentro de momentos.',
+    success:
+      'Se existir uma conta com esse email, recebes um link de recuperação dentro de momentos.',
   };
 }
 
@@ -140,7 +145,8 @@ export async function resetPasswordAction(
   const { error } = await supabase.auth.updateUser({ password: parsed.data.password });
   if (error) {
     return {
-      error: 'Não foi possível atualizar a palavra-passe. O link de recuperação pode ter expirado — pede um novo.',
+      error:
+        'Não foi possível atualizar a palavra-passe. O link de recuperação pode ter expirado — pede um novo.',
       success: null,
     };
   }

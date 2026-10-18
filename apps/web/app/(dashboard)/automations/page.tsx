@@ -58,7 +58,8 @@ function WorkflowCard({ workflow }: { workflow: WorkflowSummary }) {
               {workflow.runsCount}
               {workflow.lastRunAt ? (
                 <span className="block text-muted">
-                  última: {new Date(workflow.lastRunAt).toLocaleDateString('pt-PT')} ({workflow.lastRunStatus})
+                  última: {new Date(workflow.lastRunAt).toLocaleDateString('pt-PT')} (
+                  {workflow.lastRunStatus})
                 </span>
               ) : null}
             </dd>
@@ -97,17 +98,26 @@ export default async function AutomationsPage({
       </PageHeader>
 
       {params.created ? (
-        <p role="status" className="rounded-xl border border-success/40 bg-success-soft px-3.5 py-2.5 text-xs font-medium text-success-text">
+        <p
+          role="status"
+          className="rounded-xl border border-success/40 bg-success-soft px-3.5 py-2.5 text-xs font-medium text-success-text"
+        >
           Workflow criado.
         </p>
       ) : null}
       {params.deleted ? (
-        <p role="status" className="rounded-xl border border-success/40 bg-success-soft px-3.5 py-2.5 text-xs font-medium text-success-text">
+        <p
+          role="status"
+          className="rounded-xl border border-success/40 bg-success-soft px-3.5 py-2.5 text-xs font-medium text-success-text"
+        >
           Workflow eliminado.
         </p>
       ) : null}
       {params.error ? (
-        <p role="alert" className="rounded-xl border border-danger/40 bg-danger-soft px-3.5 py-2.5 text-xs font-medium text-danger-text">
+        <p
+          role="alert"
+          className="rounded-xl border border-danger/40 bg-danger-soft px-3.5 py-2.5 text-xs font-medium text-danger-text"
+        >
           Ocorreu um erro. Tenta novamente.
         </p>
       ) : null}

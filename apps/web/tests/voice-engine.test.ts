@@ -12,7 +12,11 @@ import { buildHardenedSystemInstructions, resolveVoiceSessionConfig } from '@/li
 import { deriveVoiceDiagnostics } from '@/lib/voice/diagnostics';
 import { readVoiceEnv } from '@/lib/voice/env';
 import { buildCallEventInsert, isDuplicateEventError } from '@/lib/voice/events';
-import { computeLifecyclePatch, reconcileStaleCall, type CallLifecycleState } from '@/lib/voice/lifecycle';
+import {
+  computeLifecyclePatch,
+  reconcileStaleCall,
+  type CallLifecycleState,
+} from '@/lib/voice/lifecycle';
 import {
   DEFAULT_WEBHOOK_LIMITS,
   SlidingWindowRateLimiter,
@@ -26,7 +30,9 @@ import { VoiceIntegrationError, type TelephonyProvider } from '@/lib/voice/contr
  * integração real (docs/voice-testing.md).
  */
 
-function event(overrides: Partial<CallLifecycleEvent> & { type: CallLifecycleEvent['type'] }): CallLifecycleEvent {
+function event(
+  overrides: Partial<CallLifecycleEvent> & { type: CallLifecycleEvent['type'] },
+): CallLifecycleEvent {
   return {
     occurredAt: '2026-10-18T10:00:05.000Z',
     providerEventId: `evt-${overrides.type}`,
@@ -45,7 +51,11 @@ const baseState: CallLifecycleState = {
 
 describe('computeLifecyclePatch — ciclo de vida', () => {
   it('criação: received não altera queued (evento de criação)', () => {
-    const outcome = computeLifecyclePatch(baseState, event({ type: 'call.received' }), '2026-10-18T10:00:06.000Z');
+    const outcome = computeLifecyclePatch(
+      baseState,
+      event({ type: 'call.received' }),
+      '2026-10-18T10:00:06.000Z',
+    );
     expect(outcome.kind).toBe('noop');
   });
 
@@ -80,7 +90,11 @@ describe('computeLifecyclePatch — ciclo de vida', () => {
   it('falha na criação da sessão: failed com razão sanitizada', () => {
     const outcome = computeLifecyclePatch(
       { ...baseState, status: 'initiating', lastOccurredAt: '2026-10-18T10:00:03.000Z' },
-      event({ type: 'call.failed', failureCode: 'session_failed', failureReason: 'Sessão recusada pelo fornecedor' }),
+      event({
+        type: 'call.failed',
+        failureCode: 'session_failed',
+        failureReason: 'Sessão recusada pelo fornecedor',
+      }),
       '2026-10-18T10:00:06.000Z',
     );
     expect(outcome.kind).toBe('applied');
@@ -92,13 +106,25 @@ describe('computeLifecyclePatch — ciclo de vida', () => {
   });
 
   it('desconexão inesperada: failed é terminal e idempotente', () => {
-    const state: CallLifecycleState = { ...baseState, status: 'failed', lastOccurredAt: '2026-10-18T10:00:04.000Z' };
-    const again = computeLifecyclePatch(state, event({ type: 'call.failed' }), '2026-10-18T10:00:06.000Z');
+    const state: CallLifecycleState = {
+      ...baseState,
+      status: 'failed',
+      lastOccurredAt: '2026-10-18T10:00:04.000Z',
+    };
+    const again = computeLifecyclePatch(
+      state,
+      event({ type: 'call.failed' }),
+      '2026-10-18T10:00:06.000Z',
+    );
     expect(again.kind).toBe('noop');
   });
 
   it('evento fora de ordem NÃO reverte o estado final', () => {
-    const state: CallLifecycleState = { ...baseState, status: 'completed', lastOccurredAt: '2026-10-18T10:01:00.000Z' };
+    const state: CallLifecycleState = {
+      ...baseState,
+      status: 'completed',
+      lastOccurredAt: '2026-10-18T10:01:00.000Z',
+    };
     const late = computeLifecyclePatch(
       state,
       event({ type: 'call.ringing', occurredAt: '2026-10-18T10:00:59.000Z' }),
@@ -108,7 +134,11 @@ describe('computeLifecyclePatch — ciclo de vida', () => {
   });
 
   it('evento stale (occurredAt anterior) é ignorado', () => {
-    const state: CallLifecycleState = { ...baseState, status: 'in_progress', lastOccurredAt: '2026-10-18T10:00:30.000Z' };
+    const state: CallLifecycleState = {
+      ...baseState,
+      status: 'in_progress',
+      lastOccurredAt: '2026-10-18T10:00:30.000Z',
+    };
     const stale = computeLifecyclePatch(
       state,
       event({ type: 'call.ended', occurredAt: '2026-10-18T10:00:10.000Z' }),
@@ -119,7 +149,11 @@ describe('computeLifecyclePatch — ciclo de vida', () => {
   });
 
   it('repetição de ended é idempotente', () => {
-    const state: CallLifecycleState = { ...baseState, status: 'completed', lastOccurredAt: '2026-10-18T10:01:00.000Z' };
+    const state: CallLifecycleState = {
+      ...baseState,
+      status: 'completed',
+      lastOccurredAt: '2026-10-18T10:01:00.000Z',
+    };
     const repeat = computeLifecyclePatch(
       state,
       event({ type: 'call.ended', occurredAt: '2026-10-18T10:01:00.000Z' }),
@@ -311,7 +345,9 @@ describe('processWebhookRequest — webhooks', () => {
   it('timestamp fora da janela anti-replay é rejeitado (409)', () => {
     const rawBody = JSON.stringify({ type: 'call.ended', callRef: 'c1' });
     const result = processWebhookRequest({
-      request: signedRequest(rawBody, secret, { 'x-webhook-timestamp': String(nowSeconds - 10_000) }),
+      request: signedRequest(rawBody, secret, {
+        'x-webhook-timestamp': String(nowSeconds - 10_000),
+      }),
       adapter,
       secret,
       nowSeconds,
@@ -486,7 +522,8 @@ describe('deriveVoiceDiagnostics — diagnóstico', () => {
 
   it('fornecedor em falha → indisponível', () => {
     expect(
-      deriveVoiceDiagnostics({ ...base, providerCheck: { ready: false, detail: 'sem resposta' } }).state,
+      deriveVoiceDiagnostics({ ...base, providerCheck: { ready: false, detail: 'sem resposta' } })
+        .state,
     ).toBe('indisponivel');
   });
 });
@@ -526,11 +563,11 @@ describe('verificação de assinaturas HMAC', () => {
   it('aceita assinatura correta e rejeita segredo errado', () => {
     const rawBody = '{"a":1}';
     const signature = computeHmacSignature({ rawBody, secret: 'certo', algorithm: 'sha256' });
-    expect(
-      verifyHmacSignature({ rawBody, signature, secret: 'certo', algorithm: 'sha256' }),
-    ).toBe(true);
-    expect(
-      verifyHmacSignature({ rawBody, signature, secret: 'errado', algorithm: 'sha256' }),
-    ).toBe(false);
+    expect(verifyHmacSignature({ rawBody, signature, secret: 'certo', algorithm: 'sha256' })).toBe(
+      true,
+    );
+    expect(verifyHmacSignature({ rawBody, signature, secret: 'errado', algorithm: 'sha256' })).toBe(
+      false,
+    );
   });
 });

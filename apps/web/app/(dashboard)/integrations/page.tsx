@@ -1,52 +1,92 @@
-import { Plug } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, CircleDashed, Plug, XCircle } from 'lucide-react';
 
-import { PageHeader } from '@/components/ui/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { EmptyState } from '@/components/ui/empty-state';
+import { PageHeader } from '@/components/ui/page-header';
+import {
+  INTEGRATION_STATE_LABELS,
+  buildIntegrationStatuses,
+  type IntegrationState,
+} from '@/lib/integrations/status';
+
+export const dynamic = 'force-dynamic';
 
 export const metadata = {
   title: 'Integrações',
 };
 
-const PLANNED = [
-  {
-    name: 'Twilio (telefonia)',
-    description: 'Realização de chamadas de voz — primeiro motor de voz.',
-  },
-  { name: 'OpenAI (IA)', description: 'Compreensão e geração de resposta do agente.' },
-  { name: 'Stripe (billing)', description: 'Faturação e planos de subscrição.' },
-];
+const STATE_VARIANT: Record<IntegrationState, 'success' | 'warning' | 'neutral' | 'danger'> = {
+  available: 'success',
+  configured_untested: 'warning',
+  not_configured: 'danger',
+  not_implemented: 'neutral',
+};
 
+const STATE_ICON: Record<IntegrationState, typeof CheckCircle2> = {
+  available: CheckCircle2,
+  configured_untested: AlertTriangle,
+  not_configured: XCircle,
+  not_implemented: CircleDashed,
+};
+
+/**
+ * Estado REAL de cada integração (configuração ≠ verificação operacional).
+ * Nenhuma integração é apresentada como ligada sem o estar.
+ */
 export default function IntegrationsPage() {
+  const integrations = buildIntegrationStatuses();
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Integrações"
-        description="Ligações a fornecedores externos de voz, IA e faturação."
+        description="Estado real das ligações externas. Separação explícita entre configuração, autenticação e verificação operacional."
       >
-        <Badge variant="outline">Nenhuma ativa</Badge>
+        <Badge variant="outline">
+          <Plug className="h-3 w-3" aria-hidden />
+          Sem segredos no browser
+        </Badge>
       </PageHeader>
 
-      <EmptyState
-        icon={Plug}
-        title="Nenhuma integração ativa"
-        description="As integrações externas não estão implementadas nem testadas neste sprint. Não são apresentadas como conectadas sem confirmação real."
-      />
+      <ul className="grid gap-4 sm:grid-cols-2">
+        {integrations.map((item) => {
+          const Icon = STATE_ICON[item.state];
+          return (
+            <li key={item.id}>
+              <Card className="h-full">
+                <CardHeader>
+                  <CardTitle className="flex items-start justify-between gap-3 text-base">
+                    <span className="flex items-center gap-2">
+                      <Icon className="h-4 w-4 shrink-0 text-muted" aria-hidden />
+                      {item.name}
+                    </span>
+                    <Badge variant={STATE_VARIANT[item.state]}>
+                      {INTEGRATION_STATE_LABELS[item.state]}
+                    </Badge>
+                  </CardTitle>
+                  <CardDescription>{item.description}</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <p className="text-small text-muted">{item.detail}</p>
+                  {item.docs ? (
+                    <p className="text-caption text-muted">
+                      Configuração e diagnóstico:{' '}
+                      <code className="rounded bg-surface px-1.5 py-0.5 font-mono">
+                        {item.docs}
+                      </code>
+                    </p>
+                  ) : null}
+                </CardContent>
+              </Card>
+            </li>
+          );
+        })}
+      </ul>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        {PLANNED.map((item) => (
-          <Card key={item.name} className="border-dashed">
-            <CardHeader>
-              <CardTitle className="text-base">{item.name}</CardTitle>
-              <CardDescription>{item.description}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Badge variant="neutral">Em breve</Badge>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <p className="text-caption text-muted">
+        As credenciais são lidas apenas no servidor a partir de variáveis de ambiente. Esta página
+        mostra estados, nunca valores.
+      </p>
     </div>
   );
 }

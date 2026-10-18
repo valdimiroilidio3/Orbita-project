@@ -12,7 +12,8 @@ export async function GET(request: Request) {
   const code = searchParams.get('code');
   const nextParam = searchParams.get('next');
   // Apenas caminhos internos (proteção contra open redirect).
-  const next = nextParam && nextParam.startsWith('/') && !nextParam.startsWith('//') ? nextParam : '/overview';
+  const next =
+    nextParam && nextParam.startsWith('/') && !nextParam.startsWith('//') ? nextParam : '/overview';
 
   if (!isSupabaseConfigured()) {
     return NextResponse.redirect(`${origin}/login?error=not-configured`);

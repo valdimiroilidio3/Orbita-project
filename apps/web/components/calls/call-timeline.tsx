@@ -2,13 +2,7 @@ import { CALL_STATUS_LABELS, type CallStatus, isTerminalCallStatus } from '@orbi
 
 import { cn } from '@/lib/utils';
 
-const FLOW: CallStatus[] = [
-  'queued',
-  'initiating',
-  'ringing',
-  'in_progress',
-  'completed',
-];
+const FLOW: CallStatus[] = ['queued', 'initiating', 'ringing', 'in_progress', 'completed'];
 
 const OUTCOMES: CallStatus[] = ['no_answer', 'busy', 'failed', 'cancelled', 'transferred'];
 
