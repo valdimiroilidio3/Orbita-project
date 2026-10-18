@@ -8,11 +8,11 @@ import { AGENT_STATUSES, AGENT_STATUS_LABELS, type AgentStatus } from '@orbita/s
 
 import { AgentCard } from '@/components/agents/agent-card';
 import { DemoBanner } from '@/components/dashboard/demo-banner';
-import { Breadcrumbs } from '@/components/layout/breadcrumbs';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { cn } from '@/lib/utils';
+import type { AgentSummary } from '@/lib/dashboard/types';
 import { demoAgents } from '@/lib/demo-data';
 
 type StatusFilter = AgentStatus | 'all';
@@ -22,11 +22,22 @@ const FILTERS: { value: StatusFilter; label: string }[] = [
   ...AGENT_STATUSES.map((status) => ({ value: status, label: AGENT_STATUS_LABELS[status] })),
 ];
 
+/** Agentes de demonstração no formato da camada de dados (identificados como demo). */
+const demoSummaries: AgentSummary[] = demoAgents.map((agent) => ({
+  id: agent.id,
+  name: agent.name,
+  description: agent.description,
+  language: agent.language,
+  status: agent.status,
+  isDemo: true,
+}));
+
 export default function AgentsPage() {
   const [filter, setFilter] = useState<StatusFilter>('all');
 
   const agents = useMemo(
-    () => (filter === 'all' ? demoAgents : demoAgents.filter((agent) => agent.status === filter)),
+    () =>
+      filter === 'all' ? demoSummaries : demoSummaries.filter((agent) => agent.status === filter),
     [filter],
   );
 
@@ -35,7 +46,6 @@ export default function AgentsPage() {
       <PageHeader
         title="Agentes"
         description="Listagem de agentes com filtros e estados. Dados de demonstração."
-        breadcrumbs={<Breadcrumbs items={[{ label: 'Agents' }]} />}
       >
         <Button asChild>
           <Link href="/agents/new">

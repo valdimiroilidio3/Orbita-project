@@ -14,15 +14,31 @@ import {
 
 import { CallsTable } from '@/components/dashboard/calls-table';
 import { DemoBanner } from '@/components/dashboard/demo-banner';
-import { Breadcrumbs } from '@/components/layout/breadcrumbs';
 import { Button } from '@/components/ui/button';
 import { FilterBar, FilterSelect } from '@/components/ui/filter-bar';
 import { PageHeader } from '@/components/ui/page-header';
 import { Pagination } from '@/components/ui/pagination';
 import { SearchInput } from '@/components/ui/search-input';
+import type { CallRecord } from '@/lib/dashboard/types';
 import { demoCalls } from '@/lib/demo-data';
 
-const PAGE_SIZE = 2;
+const PAGE_SIZE = 4;
+
+/** Chamadas de demonstração no formato da camada de dados (identificadas como demo). */
+const demoRecords: CallRecord[] = demoCalls.map((call) => ({
+  id: call.id,
+  direction: call.direction,
+  status: call.status,
+  toNumber: call.toNumber,
+  fromNumber: call.fromNumber,
+  agentName: call.agentName,
+  durationSeconds: call.durationSeconds,
+  estimatedCost: call.estimatedCost,
+  currency: call.currency,
+  startedAt: call.startedAt,
+  createdAt: call.createdAt,
+  isDemo: true,
+}));
 
 export default function CallsPage() {
   const [status, setStatus] = useState<CallStatus | 'all'>('all');
@@ -32,12 +48,12 @@ export default function CallsPage() {
 
   const filtered = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
-    return demoCalls.filter((call) => {
+    return demoRecords.filter((call) => {
       if (status !== 'all' && call.status !== status) return false;
       if (direction !== 'all' && call.direction !== direction) return false;
       if (normalizedQuery !== '') {
         const haystack =
-          `${call.toNumber ?? ''} ${call.fromNumber ?? ''} ${call.agentName}`.toLowerCase();
+          `${call.toNumber ?? ''} ${call.fromNumber ?? ''} ${call.agentName ?? ''}`.toLowerCase();
         if (!haystack.includes(normalizedQuery)) return false;
       }
       return true;
@@ -54,10 +70,9 @@ export default function CallsPage() {
     <div className="space-y-6">
       <PageHeader
         title="Chamadas"
-        description="Histórico de chamadas com estado, direção, duração e data. Sem chamadas reais neste sprint."
-        breadcrumbs={<Breadcrumbs items={[{ label: 'Calls' }]} />}
+        description="Histórico de chamadas com estado, direção, duração e data. Sem chamadas reais neste protótipo."
       >
-        <Button disabled title="Chamadas reais chegam com o motor de voz (próximo sprint)">
+        <Button disabled title="Chamadas reais chegam com o motor de voz">
           <Plus className="h-4 w-4" aria-hidden />
           Nova chamada
         </Button>
@@ -110,7 +125,7 @@ export default function CallsPage() {
         />
       </FilterBar>
 
-      <CallsTable calls={calls} />
+      <CallsTable calls={calls} caption="Histórico de chamadas (demonstração)" />
 
       {filtered.length > 0 ? (
         <Pagination
