@@ -1,0 +1,35 @@
+# Variáveis de ambiente
+
+> Fonte de verdade: `.env.example` (raiz) e `apps/web/.env.example` (idênticos em chaves).
+> Nenhum template contém valores reais. Copiar para `apps/web/.env.local` (ignorado pelo Git).
+
+## Regras
+
+1. **Nunca** usar o prefixo `NEXT_PUBLIC_` em segredos — tudo o que tem esse prefixo entra no bundle do browser.
+2. Segredos são lidos apenas em código de servidor (`lib/server/**`, `lib/voice/**`, `lib/tools/**`, `app/api/**`).
+3. Sem Supabase configurado a aplicação **não simula** autenticação nem gravações: mostra avisos explícitos e modo demo rotulado.
+4. `/api/health` reporta apenas _se_ cada variável está presente — nunca o valor.
+
+## Tabela
+
+| Variável                                                                                                                                        | Âmbito       | Obrigatória                              | Usada em                                           | Notas                                                                                                                                               |
+| ----------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | ---------------------------------------- | -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`                                                                                                                      | público      | Sim (produção)                           | `lib/env.ts`, `lib/supabase/*`, `next.config.ts`   | Também autoriza o origin Supabase (`https`/`wss`) em `connect-src` da CSP.                                                                          |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY`                                                                                                                 | público      | Sim (produção)                           | `lib/supabase/*`                                   | Protegida por RLS; sem privilégios administrativos.                                                                                                 |
+| `SUPABASE_SERVICE_ROLE_KEY`                                                                                                                     | **servidor** | Não (só ingestão de webhooks e executor) | `lib/supabase/service-role.ts` (usos documentados) | Bypass de RLS. Nunca no browser; nunca em logs. Sem ela, webhooks respondem 503.                                                                    |
+| `VOICE_PROVIDER`                                                                                                                                | servidor     | Não (default `pending`)                  | `lib/voice/providers/*`                            | `pending` = fail-closed; `openai-realtime`/`twilio` são adaptadores **não validados**.                                                              |
+| `TELEPHONY_PROVIDER`                                                                                                                            | servidor     | Não (default `pending`)                  | `lib/voice/telephony/*`                            | Idem. Só um fornecedor por vez.                                                                                                                     |
+| `TELEPHONY_WEBHOOK_SECRET`                                                                                                                      | servidor     | Sim se `TELEPHONY_PROVIDER != pending`   | `app/api/voice/webhooks/*`                         | HMAC obrigatório; sem segredo os webhooks são rejeitados.                                                                                           |
+| `OPENAI_API_KEY`, `OPENAI_WEBHOOK_SECRET`                                                                                                       | servidor     | Não                                      | reservadas                                         | Não é feita nenhuma chamada paga nesta versão.                                                                                                      |
+| `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER`                                                                                | servidor     | Não                                      | reservadas                                         | Idem.                                                                                                                                               |
+| `PUBLIC_WEBHOOK_BASE_URL`                                                                                                                       | servidor     | Não                                      | docs/voice-setup.md                                | Base dos callbacks a configurar no fornecedor.                                                                                                      |
+| `VOICE_CALL_MAX_DURATION_SECONDS`, `VOICE_CALL_TRANSIENT_TIMEOUT_MIN`, `VOICE_WEBHOOK_MAX_PAYLOAD_BYTES`, `VOICE_WEBHOOK_REPLAY_WINDOW_SECONDS` | servidor     | Não                                      | `lib/voice/config.ts`                              | Defaults documentados em `docs/voice-setup.md`.                                                                                                     |
+| `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`                                                                                                    | servidor     | Não                                      | **não usadas**                                     | Billing não implementado — ver `docs/known-limitations.md`.                                                                                         |
+| `ALLOW_FRAME_EMBEDDING`                                                                                                                         | build        | Não                                      | `next.config.ts`                                   | `true` relaxa `frame-ancestors`/`X-Frame-Options` para previews embebidos. **Build-time** (headers são fixados no `next build`). Nunca em produção. |
+| `NODE_ENV`                                                                                                                                      | build        | automático                               | `next.config.ts`                                   | Em produção: HSTS, `upgrade-insecure-requests`, sem `unsafe-eval`.                                                                                  |
+
+## Verificação
+
+- `GET /api/health` → `integrations.{supabase,service_role,telephony,voice_ai,booking,billing}` com estados
+  `available | configured_untested | not_configured | not_implemented` (sem segredos).
+- Página `/integrations` apresenta os mesmos estados ao utilizador.

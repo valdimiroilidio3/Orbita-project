@@ -1,0 +1,9 @@
+{
+  "name": "@orbita/config",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Configurações partilhadas do monorepo ORBITA CHAT (tsconfig base, convenções).",
+  "files": [
+    "tsconfig.base.json"
+  ]
+}

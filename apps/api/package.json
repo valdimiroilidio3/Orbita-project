@@ -1,0 +1,10 @@
+{
+  "name": "@orbita/api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Backend dedicado do ORBITA CHAT (esqueleto NestJS — implementação na fase seguinte).",
+  "scripts": {
+    "dev": "echo 'apps/api: backend NestJS será implementado na fase seguinte (Sprint 2). Ver apps/api/README.md.' && exit 1",
+    "build": "echo 'apps/api: nada a construir no Sprint 1.' && exit 0"
+  }
+}
