@@ -1,6 +1,7 @@
 'use client';
 
 import { ArrowDownLeft, ArrowUpRight, PhoneOff } from 'lucide-react';
+import Link from 'next/link';
 
 import {
   CALL_DIRECTION_LABELS,
@@ -23,6 +24,8 @@ export interface CallsTableProps {
   caption?: string;
   /** Skeleton de carregamento. */
   loading?: boolean;
+  /** Liga cada linha ao detalhe da chamada (/calls/[id]). */
+  linkToDetail?: boolean;
 }
 
 const DIRECTION_ICON = {
@@ -34,7 +37,13 @@ const DIRECTION_ICON = {
  * Histórico de chamadas sobre DataTable (design system).
  * Registos demo são identificados com badge — nunca apresentados como reais.
  */
-export function CallsTable({ calls, emptyAction, caption, loading = false }: CallsTableProps) {
+export function CallsTable({
+  calls,
+  emptyAction,
+  caption,
+  loading = false,
+  linkToDetail = false,
+}: CallsTableProps) {
   const columns: DataColumn<CallRecord>[] = [
     {
       key: 'direction',
@@ -96,6 +105,23 @@ export function CallsTable({ calls, emptyAction, caption, loading = false }: Cal
     },
   ];
 
+  if (linkToDetail) {
+    columns.push({
+      key: 'detail',
+      header: '',
+      align: 'right',
+      cell: (call) => (
+        <Link
+          href={`/calls/${call.id}`}
+          className="text-small font-medium text-primary hover:underline"
+          aria-label={`Ver detalhe da chamada ${call.toNumber ?? call.id}`}
+        >
+          Ver
+        </Link>
+      ),
+    });
+  }
+
   return (
     <DataTable
       columns={columns}
@@ -107,7 +133,7 @@ export function CallsTable({ calls, emptyAction, caption, loading = false }: Cal
         <EmptyState
           icon={PhoneOff}
           title="Sem chamadas para mostrar"
-          description="Ainda não existem chamadas com os filtros ativos. Quando o motor de voz estiver ligado, o histórico aparece aqui — sem dados fictícios apresentados como reais."
+          description="Ainda não existem chamadas com os filtros ativos. Inicia uma chamada com o simulador local ou ajusta os filtros — sem dados fictícios apresentados como reais."
           action={emptyAction}
         />
       }

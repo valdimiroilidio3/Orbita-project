@@ -1,28 +1,22 @@
-'use client';
-
-import { Plus } from 'lucide-react';
-import { useMemo, useState } from 'react';
-
-import {
-  CALL_DIRECTIONS,
-  CALL_DIRECTION_LABELS,
-  CALL_STATUSES,
-  CALL_STATUS_LABELS,
-  type CallDirection,
-  type CallStatus,
-} from '@orbita/shared';
-
-import { CallsTable } from '@/components/dashboard/calls-table';
-import { DemoBanner } from '@/components/dashboard/demo-banner';
-import { Button } from '@/components/ui/button';
-import { FilterBar, FilterSelect } from '@/components/ui/filter-bar';
-import { PageHeader } from '@/components/ui/page-header';
-import { Pagination } from '@/components/ui/pagination';
-import { SearchInput } from '@/components/ui/search-input';
-import type { CallRecord } from '@/lib/dashboard/types';
+import { isSupabaseConfigured } from '@/lib/env';
+import { CallsList } from '@/components/calls/calls-list';
 import { demoCalls } from '@/lib/demo-data';
+import type { CallRecord } from '@/lib/dashboard/types';
+import { listMyCalls } from '@/lib/server/calls';
 
-const PAGE_SIZE = 4;
+export const dynamic = 'force-dynamic';
+
+export const metadata = {
+  title: 'Chamadas',
+};
+
+const NOTICE_BY_ERROR: Record<string, string> = {
+  nao_encontrado: 'Chamada não encontrada na tua organização.',
+  nao_configurado:
+    'Supabase não configurado — a operação não foi executada nem simulada. Ver apps/web/.env.example.',
+  transicao_invalida: 'Transição de estado inválida para esta chamada.',
+  atualizacao_falhou: 'Não foi possível atualizar a chamada. Tenta novamente.',
+};
 
 /** Chamadas de demonstração no formato da camada de dados (identificadas como demo). */
 const demoRecords: CallRecord[] = demoCalls.map((call) => ({
@@ -40,101 +34,40 @@ const demoRecords: CallRecord[] = demoCalls.map((call) => ({
   isDemo: true,
 }));
 
-export default function CallsPage() {
-  const [status, setStatus] = useState<CallStatus | 'all'>('all');
-  const [direction, setDirection] = useState<CallDirection | 'all'>('all');
-  const [query, setQuery] = useState('');
-  const [page, setPage] = useState(1);
-
-  const filtered = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
-    return demoRecords.filter((call) => {
-      if (status !== 'all' && call.status !== status) return false;
-      if (direction !== 'all' && call.direction !== direction) return false;
-      if (normalizedQuery !== '') {
-        const haystack =
-          `${call.toNumber ?? ''} ${call.fromNumber ?? ''} ${call.agentName ?? ''}`.toLowerCase();
-        if (!haystack.includes(normalizedQuery)) return false;
+/** Histórico de chamadas — dados reais (org da sessão) ou demonstração rotulada. */
+export default async function CallsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  const params = await searchParams;
+  const notice = params.error
+    ? {
+        type: 'error' as const,
+        message: NOTICE_BY_ERROR[params.error] ?? 'Ocorreu um erro. Tenta novamente.',
       }
-      return true;
-    });
-  }, [status, direction, query]);
+    : null;
 
-  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const currentPage = Math.min(page, pageCount);
-  const calls = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  if (!isSupabaseConfigured()) {
+    return <CallsList records={demoRecords} demoMode canStart={false} notice={notice} />;
+  }
 
-  const hasFilters = status !== 'all' || direction !== 'all' || query.trim() !== '';
+  const { calls } = await listMyCalls({ limit: 100 });
 
-  return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Chamadas"
-        description="Histórico de chamadas com estado, direção, duração e data. Sem chamadas reais neste protótipo."
-      >
-        <Button disabled title="Chamadas reais chegam com o motor de voz">
-          <Plus className="h-4 w-4" aria-hidden />
-          Nova chamada
-        </Button>
-      </PageHeader>
+  const records: CallRecord[] = calls.map((call) => ({
+    id: call.id,
+    direction: call.direction,
+    status: call.status,
+    toNumber: call.toNumber,
+    fromNumber: call.fromNumber,
+    agentName: call.agentName,
+    durationSeconds: call.durationSeconds,
+    estimatedCost: call.estimatedCost,
+    currency: call.currency,
+    startedAt: call.startedAt,
+    createdAt: call.createdAt,
+    isDemo: false,
+  }));
 
-      <DemoBanner />
-
-      <FilterBar
-        showClear={hasFilters}
-        onClear={() => {
-          setStatus('all');
-          setDirection('all');
-          setQuery('');
-          setPage(1);
-        }}
-      >
-        <SearchInput
-          value={query}
-          onValueChange={(value) => {
-            setQuery(value);
-            setPage(1);
-          }}
-          placeholder="Pesquisar por número ou agente…"
-          label="Pesquisar chamadas"
-          className="sm:max-w-xs"
-        />
-        <FilterSelect
-          label="Direção"
-          value={direction}
-          onValueChange={(value) => {
-            setDirection(value as CallDirection | 'all');
-            setPage(1);
-          }}
-          options={[
-            { value: 'all', label: 'Todas as direções' },
-            ...CALL_DIRECTIONS.map((value) => ({ value, label: CALL_DIRECTION_LABELS[value] })),
-          ]}
-        />
-        <FilterSelect
-          label="Estado"
-          value={status}
-          onValueChange={(value) => {
-            setStatus(value as CallStatus | 'all');
-            setPage(1);
-          }}
-          options={[
-            { value: 'all', label: 'Todos os estados' },
-            ...CALL_STATUSES.map((value) => ({ value, label: CALL_STATUS_LABELS[value] })),
-          ]}
-        />
-      </FilterBar>
-
-      <CallsTable calls={calls} caption="Histórico de chamadas (demonstração)" />
-
-      {filtered.length > 0 ? (
-        <Pagination
-          page={currentPage}
-          pageCount={pageCount}
-          onPageChange={setPage}
-          label={`Página ${currentPage} de ${pageCount} · ${filtered.length} chamada${filtered.length === 1 ? '' : 's'} (demo)`}
-        />
-      ) : null}
-    </div>
-  );
+  return <CallsList records={records} demoMode={false} canStart notice={notice} />;
 }

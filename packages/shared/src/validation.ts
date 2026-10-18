@@ -93,6 +93,26 @@ export const callQuerySchema = z.object({
 
 export type CallQuery = z.infer<typeof callQuerySchema>;
 
+/**
+ * Número de telefone em formato internacional simples (`+` e dígitos,
+ * espaços/parênteses/hífens permitidos). A telefonia real validará o E.164
+ * no fornecedor — aqui evitam-se entradas obviamente inválidas.
+ */
+export const phoneNumberSchema = z
+  .string()
+  .trim()
+  .min(5, 'Número de telefone demasiado curto')
+  .max(32, 'Número de telefone demasiado longo')
+  .regex(/^\+?[0-9][0-9\s()-]*$/, 'Número de telefone inválido');
+
+/** Início de chamada (validação de cliente; o servidor revalida). */
+export const startCallSchema = z.object({
+  agentId: z.uuid('Agente inválido'),
+  toNumber: phoneNumberSchema,
+});
+
+export type StartCallInput = z.infer<typeof startCallSchema>;
+
 /* ── Autenticação ─────────────────────────────────────────── */
 
 export const emailSchema = z.email('Introduz um email válido').max(254, 'Email demasiado longo');

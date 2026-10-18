@@ -99,6 +99,7 @@ psql "$DATABASE_URL" -f supabase/seed.sql   # opcional — dados de demonstraç�
 - [`docs/security.md`](docs/security.md) — segurança multi-tenant e RLS (Fase 04)
 - [`docs/authentication.md`](docs/authentication.md) — autenticação Supabase (Fase 04)
 - [`docs/agent-studio.md`](docs/agent-studio.md) — Agent Studio e gestão de agentes (Fase 05)
+- [`docs/call-engine.md`](docs/call-engine.md) — motor de chamadas e ciclo de vida (Prompt 06)
 - [`docs/design-system.md`](docs/design-system.md) — design system (Fase 02)
 - [`docs/dashboard.md`](docs/dashboard.md) — dashboard e navegação (Fase 03)
 - [`docs/sprint-01.md`](docs/sprint-01.md) — briefing do sprint

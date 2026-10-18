@@ -48,6 +48,50 @@ export const CALL_STATUSES = [
 ] as const;
 export type CallStatus = (typeof CALL_STATUSES)[number];
 
+/** Estados terminais — imutáveis na BD (trigger `calls_guard`) e no produto. */
+export const TERMINAL_CALL_STATUSES = [
+  'completed',
+  'failed',
+  'busy',
+  'no_answer',
+  'cancelled',
+  'transferred',
+] as const;
+
+export function isTerminalCallStatus(status: CallStatus): boolean {
+  return (TERMINAL_CALL_STATUSES as readonly CallStatus[]).includes(status);
+}
+
+/**
+ * Máquina de estados do ciclo de vida de uma chamada:
+ *
+ *   queued → initiating → ringing → in_progress → completed
+ *     │          │           │  └───────┼───────────┼── failed/transferred
+ *     │          │           └── no_answer/busy     │
+ *     └──────────┴─────────────── cancel/failed ────┘
+ *
+ * `cancelled` é possível de qualquer estado não terminal; estados terminais
+ * não transitam. A BD impõe o piso (terminais imutáveis, sem regressão a
+ * `queued`); esta tabela valida o fluxo do produto no servidor.
+ */
+export const CALL_STATUS_TRANSITIONS: Record<CallStatus, readonly CallStatus[]> = {
+  queued: ['initiating', 'cancelled', 'failed'],
+  initiating: ['ringing', 'failed', 'cancelled'],
+  ringing: ['in_progress', 'no_answer', 'busy', 'failed', 'cancelled'],
+  in_progress: ['completed', 'failed', 'transferred', 'cancelled'],
+  completed: [],
+  failed: [],
+  busy: [],
+  no_answer: [],
+  cancelled: [],
+  transferred: [],
+};
+
+/** Determina se uma transição de estado de chamada é válida no produto. */
+export function canTransitionCallStatus(from: CallStatus, to: CallStatus): boolean {
+  return CALL_STATUS_TRANSITIONS[from].includes(to);
+}
+
 export const SUPPORTED_CURRENCIES = ['EUR', 'USD', 'GBP'] as const;
 export type Currency = (typeof SUPPORTED_CURRENCIES)[number];
 
