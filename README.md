@@ -96,5 +96,10 @@ psql "$DATABASE_URL" -f supabase/seed.sql   # opcional — dados de demonstraç�
 
 - [`docs/architecture.md`](docs/architecture.md) — arquitetura e decisões
 - [`docs/data-model.md`](docs/data-model.md) — modelo de dados
+- [`docs/design-system.md`](docs/design-system.md) — design system (Fase 02)
 - [`docs/sprint-01.md`](docs/sprint-01.md) — briefing do sprint
 - [`docs/sprint-01-report.md`](docs/sprint-01-report.md) — relatório final do sprint
+
+### Demonstração do design system
+
+Rota interna **`/design-system`** (não indexada): paleta, tipografia, componentes, overlays, dados e estados.

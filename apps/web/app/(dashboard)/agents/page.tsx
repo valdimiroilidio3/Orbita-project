@@ -8,9 +8,10 @@ import { AGENT_STATUSES, AGENT_STATUS_LABELS, type AgentStatus } from '@orbita/s
 
 import { AgentCard } from '@/components/agents/agent-card';
 import { DemoBanner } from '@/components/dashboard/demo-banner';
-import { PageHeader } from '@/components/layout/page-header';
+import { Breadcrumbs } from '@/components/layout/breadcrumbs';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
+import { PageHeader } from '@/components/ui/page-header';
 import { cn } from '@/lib/utils';
 import { demoAgents } from '@/lib/demo-data';
 
@@ -34,6 +35,7 @@ export default function AgentsPage() {
       <PageHeader
         title="Agentes"
         description="Listagem de agentes com filtros e estados. Dados de demonstração."
+        breadcrumbs={<Breadcrumbs items={[{ label: 'Agents' }]} />}
       >
         <Button asChild>
           <Link href="/agents/new">
@@ -53,10 +55,11 @@ export default function AgentsPage() {
             onClick={() => setFilter(option.value)}
             aria-pressed={filter === option.value}
             className={cn(
-              'rounded-full border px-4 py-1.5 text-sm font-medium transition-colors',
+              'rounded-full border px-4 py-1.5 text-small font-medium transition-colors duration-fast ease-out',
+              'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus',
               filter === option.value
-                ? 'border-primary bg-primary text-white'
-                : 'border-border bg-background text-muted hover:bg-surface hover:text-text',
+                ? 'border-primary bg-primary text-white shadow-xs'
+                : 'border-border bg-surface text-muted hover:bg-background hover:text-text',
             )}
           >
             {option.label}
@@ -80,7 +83,7 @@ export default function AgentsPage() {
           action={
             <div className="flex items-center gap-2">
               {filter !== 'all' ? (
-                <Button variant="secondary" onClick={() => setFilter('all')}>
+                <Button variant="outline" onClick={() => setFilter('all')}>
                   Limpar filtro
                 </Button>
               ) : null}

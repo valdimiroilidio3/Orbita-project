@@ -11,20 +11,20 @@ export interface EmptyStateProps {
   className?: string;
 }
 
-/** Estado vazio com orientação e ação opcional. */
+/** Estado vazio com orientação clara e ação opcional. */
 export function EmptyState({ icon: Icon, title, description, action, className }: EmptyStateProps) {
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border bg-surface px-6 py-16 text-center',
+        'flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border bg-surface px-6 py-16 text-center',
         className,
       )}
     >
-      <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-soft-blue text-primary">
+      <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-soft-blue text-primary">
         <Icon className="h-6 w-6" aria-hidden />
       </span>
-      <h2 className="text-lg font-semibold">{title}</h2>
-      <p className="max-w-md text-sm text-muted">{description}</p>
+      <h2 className="text-h3">{title}</h2>
+      <p className="max-w-md text-small text-muted">{description}</p>
       {action ? <div className="mt-2">{action}</div> : null}
     </div>
   );

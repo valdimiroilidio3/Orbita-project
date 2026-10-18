@@ -46,7 +46,7 @@ export function AgentCard({ agent }: AgentCardProps) {
           <StatusBadge status={agent.status} kind="agent" />
           <div className="flex items-center gap-2">
             <Button
-              variant="secondary"
+              variant="outline"
               size="sm"
               disabled
               title="Edição disponível numa fase seguinte"
@@ -55,7 +55,7 @@ export function AgentCard({ agent }: AgentCardProps) {
               Editar
             </Button>
             <Button
-              variant="secondary"
+              variant="outline"
               size="sm"
               disabled
               title="Chamadas reais chegam no próximo sprint"

@@ -1,6 +1,6 @@
 'use client';
 
-import { FilterX, Plus, Search } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 import {
@@ -14,17 +14,23 @@ import {
 
 import { CallsTable } from '@/components/dashboard/calls-table';
 import { DemoBanner } from '@/components/dashboard/demo-banner';
-import { PageHeader } from '@/components/layout/page-header';
+import { Breadcrumbs } from '@/components/layout/breadcrumbs';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { FilterBar, FilterSelect } from '@/components/ui/filter-bar';
+import { PageHeader } from '@/components/ui/page-header';
+import { Pagination } from '@/components/ui/pagination';
+import { SearchInput } from '@/components/ui/search-input';
 import { demoCalls } from '@/lib/demo-data';
+
+const PAGE_SIZE = 2;
 
 export default function CallsPage() {
   const [status, setStatus] = useState<CallStatus | 'all'>('all');
   const [direction, setDirection] = useState<CallDirection | 'all'>('all');
   const [query, setQuery] = useState('');
+  const [page, setPage] = useState(1);
 
-  const calls = useMemo(() => {
+  const filtered = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
     return demoCalls.filter((call) => {
       if (status !== 'all' && call.status !== status) return false;
@@ -38,6 +44,10 @@ export default function CallsPage() {
     });
   }, [status, direction, query]);
 
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const currentPage = Math.min(page, pageCount);
+  const calls = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
   const hasFilters = status !== 'all' || direction !== 'all' || query.trim() !== '';
 
   return (
@@ -45,6 +55,7 @@ export default function CallsPage() {
       <PageHeader
         title="Chamadas"
         description="Histórico de chamadas com estado, direção, duração e data. Sem chamadas reais neste sprint."
+        breadcrumbs={<Breadcrumbs items={[{ label: 'Calls' }]} />}
       >
         <Button disabled title="Chamadas reais chegam com o motor de voz (próximo sprint)">
           <Plus className="h-4 w-4" aria-hidden />
@@ -54,73 +65,61 @@ export default function CallsPage() {
 
       <DemoBanner />
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div className="relative flex-1">
-          <Search
-            className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
-            aria-hidden
-          />
-          <Input
-            type="search"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Pesquisar por número ou agente…"
-            className="pl-9"
-            aria-label="Pesquisar chamadas"
-          />
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <label className="sr-only" htmlFor="filter-direction">
-            Direção
-          </label>
-          <select
-            id="filter-direction"
-            value={direction}
-            onChange={(event) => setDirection(event.target.value as CallDirection | 'all')}
-            className="h-10 rounded-xl border border-border bg-background px-3 text-sm text-text"
-          >
-            <option value="all">Todas as direções</option>
-            {CALL_DIRECTIONS.map((value) => (
-              <option key={value} value={value}>
-                {CALL_DIRECTION_LABELS[value]}
-              </option>
-            ))}
-          </select>
-
-          <label className="sr-only" htmlFor="filter-status">
-            Estado
-          </label>
-          <select
-            id="filter-status"
-            value={status}
-            onChange={(event) => setStatus(event.target.value as CallStatus | 'all')}
-            className="h-10 rounded-xl border border-border bg-background px-3 text-sm text-text"
-          >
-            <option value="all">Todos os estados</option>
-            {CALL_STATUSES.map((value) => (
-              <option key={value} value={value}>
-                {CALL_STATUS_LABELS[value]}
-              </option>
-            ))}
-          </select>
-
-          {hasFilters ? (
-            <Button
-              variant="secondary"
-              onClick={() => {
-                setStatus('all');
-                setDirection('all');
-                setQuery('');
-              }}
-            >
-              <FilterX className="h-4 w-4" aria-hidden />
-              Limpar
-            </Button>
-          ) : null}
-        </div>
-      </div>
+      <FilterBar
+        showClear={hasFilters}
+        onClear={() => {
+          setStatus('all');
+          setDirection('all');
+          setQuery('');
+          setPage(1);
+        }}
+      >
+        <SearchInput
+          value={query}
+          onValueChange={(value) => {
+            setQuery(value);
+            setPage(1);
+          }}
+          placeholder="Pesquisar por número ou agente…"
+          label="Pesquisar chamadas"
+          className="sm:max-w-xs"
+        />
+        <FilterSelect
+          label="Direção"
+          value={direction}
+          onValueChange={(value) => {
+            setDirection(value as CallDirection | 'all');
+            setPage(1);
+          }}
+          options={[
+            { value: 'all', label: 'Todas as direções' },
+            ...CALL_DIRECTIONS.map((value) => ({ value, label: CALL_DIRECTION_LABELS[value] })),
+          ]}
+        />
+        <FilterSelect
+          label="Estado"
+          value={status}
+          onValueChange={(value) => {
+            setStatus(value as CallStatus | 'all');
+            setPage(1);
+          }}
+          options={[
+            { value: 'all', label: 'Todos os estados' },
+            ...CALL_STATUSES.map((value) => ({ value, label: CALL_STATUS_LABELS[value] })),
+          ]}
+        />
+      </FilterBar>
 
       <CallsTable calls={calls} />
+
+      {filtered.length > 0 ? (
+        <Pagination
+          page={currentPage}
+          pageCount={pageCount}
+          onPageChange={setPage}
+          label={`Página ${currentPage} de ${pageCount} · ${filtered.length} chamada${filtered.length === 1 ? '' : 's'} (demo)`}
+        />
+      ) : null}
     </div>
   );
 }
